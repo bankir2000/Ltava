@@ -4091,9 +4091,10 @@ const Lc = Io(Tc, [["render", Fc]])
             this.form.na_bch = localStorage.getItem("na_bch") || null,
             this.form.selectedWeapons = JSON.parse(localStorage.getItem("selectedWeapons") || "[]")
         },
-        addWeapon() {
-            if (this.form.weaponToAdd && !this.form.selectedWeapons.includes(this.form.weaponToAdd)) {
-                this.form.selectedWeapons = [...this.form.selectedWeapons, this.form.weaponToAdd];
+        addWeapon(val) {
+            const w = val || this.form.weaponToAdd;
+            if (w && !this.form.selectedWeapons.includes(w)) {
+                this.form.selectedWeapons = [...this.form.selectedWeapons, w];
                 localStorage.setItem("selectedWeapons", JSON.stringify(this.form.selectedWeapons));
             }
         },
@@ -4524,8 +4525,7 @@ function bu(e, t, n, s, r, o) {
         B("div", { class: "flex gap-2 mt-1" }, [
             F("select", {
                 id: "weapons_select",
-                class: "block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm text-lg",
-                onInput: t[35] || (t[35] = e => { r.form.weaponToAdd = e.target.value; })
+                class: "block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm text-lg"
             }, [
                 F("option", { value: "" }, "\u2014 \u043e\u0431\u0435\u0440\u0456\u0442\u044c \u0437\u0431\u0440\u043e\u044e \u2014"),
                 F("option", { value: "\u0456\u0437 \u0417\u041a\u0423 Viktor MR-2 14,5" }, "\u0456\u0437 \u0417\u041a\u0423 Viktor MR-2 14,5"),
@@ -4533,21 +4533,24 @@ function bu(e, t, n, s, r, o) {
             ]),
             B("button", {
                 class: "bg-sky-500 rounded text-white px-3 text-sm whitespace-nowrap",
-                onClick: t[36] || (t[36] = () => o.addWeapon())
+                onClick: t[36] || (t[36] = () => {
+                    const sel = document.getElementById("weapons_select");
+                    if (sel && sel.value) o.addWeapon(sel.value);
+                })
             }, "+ \u0414\u043e\u0434\u0430\u0442\u0438")
         ]),
-        r.form.selectedWeapons && r.form.selectedWeapons.length ? B("div", { class: "mt-2 flex flex-wrap gap-1" },
-            r.form.selectedWeapons.map((w, i) => B("span", {
+        r.form.selectedWeapons && r.form.selectedWeapons.length ? (Y(!0), G(de, null, cn(r.form.selectedWeapons, (w, i) => (Y(),
+            G("span", {
                 key: i,
-                class: "bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm"
+                class: "bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm inline-flex items-center gap-1 mr-1 mt-1"
             }, [
-                We(w) + " ",
+                We(w + " "),
                 B("button", {
                     class: "text-red-500 font-bold",
                     onClick: () => o.removeWeapon(i)
                 }, "\u2715")
-            ]))
-        ) : bt("", !0)
+            ])
+        )), 128)) : bt("", !0)
     ]),
     B("div", du, [F(l, {
         for: "target_action",
