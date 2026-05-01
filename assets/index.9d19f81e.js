@@ -3945,7 +3945,7 @@ const Lc = Io(Tc, [["render", Fc]])
       }
 
       return total > 0
-        ? `Витрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.).`
+        ? `із ЗКУ Viktor MR-2 14,5 ${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.).`
         : "";
     })(),
     this.form.ak_ammunition_consumption
