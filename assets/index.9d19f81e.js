@@ -3832,6 +3832,7 @@ const Lc = Io(Tc, [["render", Fc]])
                 lat: null,
                 lng: null,
                 nearestCity: null,
+                oblast: null,
                 targetNearestCity: null,
                 time: null,
                 disclosure: null,
@@ -3849,7 +3850,8 @@ const Lc = Io(Tc, [["render", Fc]])
                 other_weapon: null,
                 other_weapon_ammo: null,
                 na_bch: null,
-                description: null
+                description: null,
+                selectedWeapons: []
             },
             flags: {
                 azimuth: !1,
@@ -3859,6 +3861,8 @@ const Lc = Io(Tc, [["render", Fc]])
             targets: ["БпЛА типу Гербера", "Гелікоптер.", "БпЛА типу Зала", "Зонд", "БпЛА типу Молнія", "Квадрокоптер.", "БпЛА типу Невизначений", "Крилата Ракета.", "БпЛА типу Орлан", "Літак Великий.", "БпЛА типу реактивний Шахед", "Літак Малий.", "БпЛА типу Суперкам", "Постріли.", "БпЛА типу ШАХЕД", "Робота суміжних підрозділів", "Вибух.", "Спалах в небі", "Вибух на землі", "FPV-дрон", "Виходи."],
             disclosure: ["\u0412\u0438\u044f\u0432\u043b\u0435\u043D\u043E \u0430\u043A\u0443\u0441\u0442\u0438\u0447\u043D\u043E.", "\u0412\u0438\u044F\u0432\u043B\u0435\u043D\u043E \u0430\u043A\u0443\u0441\u0442\u0438\u0447\u043D\u043E \u0442\u0430 \u0432\u0456\u0437\u0443\u0430\u043B\u044C\u043D\u043E.", "\u0412\u0438\u044F\u0432\u043B\u0435\u043D\u043E \u0432\u0456\u0437\u0443\u0430\u043B\u044C\u043D\u043E.", "Візуально і акустично \u043D\u0435 \u0432\u0438\u044F\u0432\u043B\u0435\u043D\u043E."],
             target_action: ["не застосовувалась", "знищено", "не знищено"],
+            oblasts: ["Вінницька","Волинська","Дніпропетровська","Донецька","Житомирська","Закарпатська","Запорізька","Івано-Франківська","Київська","Кіровоградська","Луганська","Львівська","Миколаївська","Одеська","Полтавська","Рівненська","Сумська","Тернопільська","Харківська","Херсонська","Хмельницька","Черкаська","Чернівецька","Чернігівська","м. Київ"],
+            weaponsList: ["із ЗКУ Viktor MR-2 14,5", "зі стрілецької зброї 5.45/5.56"],
             targets_bpla: [" \u0442\u0438\u043f\u0443 \u0417\u0430\u043b\u0430.", " \u0442\u0438\u043f\u0443 \u0421\u0443\u043f\u0435\u0440\u043a\u0430\u043c.", " \u0442\u0438\u043f\u0443 \u0428\u0430\u0445\u0435\u0434.", " \u0442\u0438\u043f\u0443 \u041e\u0440\u043b\u0430\u043d.", " \u0442\u0438\u043f\u0443 \u041b\u0430\u043d\u0446\u0435\u0442.", " \u0442\u0438\u043f \u043d\u0435\u0432\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e."],
             tcil: null,
             ammunition_consumption: null,
@@ -3887,7 +3891,8 @@ const Lc = Io(Tc, [["render", Fc]])
     this.form.time ?  `Час: ${this.form.time}` : "",
     this.form.tcil ? `№ цілі: ${this.form.tcil}` : "",
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
-    `Обл.: Полтавська`,
+    this.form.oblast ? `Обл.: ${this.form.oblast}` : "",
+    this.form.selectedWeapons && this.form.selectedWeapons.length ? `Зброя: ${this.form.selectedWeapons.join(", ")}` : "",
     `Підрозділ: 13 озкб`,
     this.form.sign ? `Позивний: ${this.form.sign}` : "",
     this.form.target ? this.form.target : "",
@@ -4078,10 +4083,12 @@ const Lc = Io(Tc, [["render", Fc]])
         loadInputFromLocalStorage() {
             this.form.sign = localStorage.getItem("Sign") || null,
             this.form.nearestCity = localStorage.getItem("nearestCity") || null,
+            this.form.oblast = localStorage.getItem("oblast") || null,
             this.form.lat = localStorage.getItem("lat") || null,
             this.form.lng = localStorage.getItem("lng") || null,
             this.form.other_weapon = localStorage.getItem("other_weapon") || null,
-            this.form.na_bch = localStorage.getItem("na_bch") || null
+            this.form.na_bch = localStorage.getItem("na_bch") || null,
+            this.form.selectedWeapons = JSON.parse(localStorage.getItem("selectedWeapons") || "[]")
         },
         roundNearest5(e) {
             return Math.round(e / 5) * 5
@@ -4120,6 +4127,15 @@ const Lc = Io(Tc, [["render", Fc]])
     watch: {
         "form.sign": function(e) {
             localStorage.setItem("Sign", e)
+        },
+        "form.oblast": function(e) {
+            localStorage.setItem("oblast", e)
+        },
+        "form.selectedWeapons": {
+            deep: true,
+            handler(e) {
+                localStorage.setItem("selectedWeapons", JSON.stringify(e))
+            }
         },
         "form.nearestCity": function(e) {
             localStorage.setItem("nearestCity", e)
@@ -4432,10 +4448,23 @@ function bu(e, t, n, s, r, o) {
     }, " \u041E\u0442\u0440\u0438\u043C\u0430\u0442\u0438 \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0439 \u043F\u0443\u043D\u043A\u0442 ")]), F(c, {
         id: "nearestCity",
         modelValue: r.form.nearestCity,
-        "onUpdate:modelValue": t[15] || (t[15] = d=>r.form.nearestCity = d),
+        "onUpdate:modelValue": t[15] || (t[15] = d=>r.form.nearestCity = d.toUpperCase()),
         type: "text",
         class: "mt-1 block w-full"
-    }, null, 8, ["modelValue"])]), B("div", iu, [B("div", lu, [F(l, {
+    }, null, 8, ["modelValue"]),
+    // Вибір області
+    B("div", { class: "pb-4 mt-2" }, [
+        F(l, { for: "oblast", value: "Область:" }),
+        B("select", {
+            id: "oblast",
+            class: "mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm text-lg",
+            value: r.form.oblast || "",
+            onChange: d => { r.form.oblast = d.target.value; localStorage.setItem("oblast", d.target.value); }
+        }, [
+            B("option", { value: "" }, "— оберіть область —"),
+            ...o.oblasts.map(obl => B("option", { value: obl, selected: r.form.oblast === obl }, obl))
+        ], 40, ["value", "onChange"])
+    ])]), B("div", iu, [B("div", lu, [F(l, {
         for: "time",
         value: "\u0427\u0430\u0441 \u0432\u0438\u044F\u0432\u043B\u0435\u043D\u043D\u044F \u0446\u0456\u043B\u0456:"
     }), B("div", cu, [B("button", {
@@ -4463,7 +4492,44 @@ function bu(e, t, n, s, r, o) {
         "onUpdate:checked": t[19] || (t[19] = _=>r.form.disclosure = _),
         name: "disclosure",
         value: d
-    }, null, 8, ["checked", "value"]), B("span", au, We(d), 1)]))), 128))])]), B("div", du, [F(l, {
+    }, null, 8, ["checked", "value"]), B("span", au, We(d), 1)]))), 128))])]), B("div", { class: "pb-4" }, [
+    // Вибір зброї
+    F(l, { for: "weapons_select", value: "Зброя:" }),
+    B("div", { class: "flex gap-2 mt-1" }, [
+        B("select", {
+            id: "weapons_select",
+            class: "block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm text-lg",
+            ref: "weaponsSelect"
+        }, [
+            B("option", { value: "" }, "— оберіть зброю —"),
+            ...o.weaponsList.map(w => B("option", { value: w }, w))
+        ]),
+        B("button", {
+            class: "bg-sky-500 rounded text-white px-3 text-sm whitespace-nowrap",
+            onClick: () => {
+                const sel = document.getElementById("weapons_select");
+                if (sel && sel.value && !r.form.selectedWeapons.includes(sel.value)) {
+                    r.form.selectedWeapons = [...r.form.selectedWeapons, sel.value];
+                    localStorage.setItem("selectedWeapons", JSON.stringify(r.form.selectedWeapons));
+                }
+            }
+        }, "+ Додати")
+    ]),
+    r.form.selectedWeapons && r.form.selectedWeapons.length ? B("div", { class: "mt-2 flex flex-wrap gap-1" }, [
+        ...r.form.selectedWeapons.map((w, i) => B("span", {
+            class: "bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm flex items-center gap-1"
+        }, [
+            w,
+            B("button", {
+                class: "text-red-500 font-bold ml-1",
+                onClick: () => {
+                    r.form.selectedWeapons = r.form.selectedWeapons.filter((_, idx) => idx !== i);
+                    localStorage.setItem("selectedWeapons", JSON.stringify(r.form.selectedWeapons));
+                }
+            }, "✕")
+        ]))
+    ]) : bt("", !0)
+]), B("div", du, [F(l, {
         for: "target_action",
         value: "\u041F\u043E\u0432\u0456\u0442\u0440\u044F\u043D\u043E\u0433\u043E \u041F\u0440\u043E\u0442\u0438\u0432\u043D\u0438\u043A\u0430 🎯:"
     }), B("div", hu, [(Y(!0),
@@ -6089,6 +6155,8 @@ const Is = yc(vu);
 Is.use(Ec());
 Is.use(Pf);
 Is.mount("#app");
+
+
 
 
 
