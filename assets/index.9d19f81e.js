@@ -3834,6 +3834,7 @@ const Lc = Io(Tc, [["render", Fc]])
                 nearestCity: null,
                 oblast: null,
                 selectedWeapons: [],
+                weaponToAdd: "",
                 targetNearestCity: null,
                 time: null,
                 disclosure: null,
@@ -3863,7 +3864,6 @@ const Lc = Io(Tc, [["render", Fc]])
             target_action: ["не застосовувалась", "знищено", "не знищено"],
             oblasts: ["Вінницька","Волинська","Дніпропетровська","Донецька","Житомирська","Закарпатська","Запорізька","Івано-Франківська","Київська","Кіровоградська","Луганська","Львівська","Миколаївська","Одеська","Полтавська","Рівненська","Сумська","Тернопільська","Харківська","Херсонська","Хмельницька","Черкаська","Чернівецька","Чернігівська","м. Київ"],
             weaponsList: ["із ЗКУ Viktor MR-2 14,5", "зі стрілецької зброї 5.45/5.56"],
-            weaponToAdd: "",
             targets_bpla: [" \u0442\u0438\u043f\u0443 \u0417\u0430\u043b\u0430.", " \u0442\u0438\u043f\u0443 \u0421\u0443\u043f\u0435\u0440\u043a\u0430\u043c.", " \u0442\u0438\u043f\u0443 \u0428\u0430\u0445\u0435\u0434.", " \u0442\u0438\u043f\u0443 \u041e\u0440\u043b\u0430\u043d.", " \u0442\u0438\u043f\u0443 \u041b\u0430\u043d\u0446\u0435\u0442.", " \u0442\u0438\u043f \u043d\u0435\u0432\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e."],
             tcil: null,
             ammunition_consumption: null,
@@ -4092,8 +4092,8 @@ const Lc = Io(Tc, [["render", Fc]])
             this.form.selectedWeapons = JSON.parse(localStorage.getItem("selectedWeapons") || "[]")
         },
         addWeapon() {
-            if (this.weaponToAdd && !this.form.selectedWeapons.includes(this.weaponToAdd)) {
-                this.form.selectedWeapons = [...this.form.selectedWeapons, this.weaponToAdd];
+            if (this.form.weaponToAdd && !this.form.selectedWeapons.includes(this.form.weaponToAdd)) {
+                this.form.selectedWeapons = [...this.form.selectedWeapons, this.form.weaponToAdd];
                 localStorage.setItem("selectedWeapons", JSON.stringify(this.form.selectedWeapons));
             }
         },
@@ -4453,7 +4453,7 @@ function bu(e, t, n, s, r, o) {
     }, " \u041E\u0442\u0440\u0438\u043C\u0430\u0442\u0438 \u043D\u0430\u0441\u0435\u043B\u0435\u043D\u0438\u0439 \u043F\u0443\u043D\u043A\u0442 ")]), F(c, {
         id: "nearestCity",
         modelValue: r.form.nearestCity,
-        "onUpdate:modelValue": t[15] || (t[15] = d=>r.form.nearestCity = d.toUpperCase()),
+        "onUpdate:modelValue": t[15] || (t[15] = d=>r.form.nearestCity = (d || "").toUpperCase()),
         type: "text",
         class: "mt-1 block w-full"
     }, null, 8, ["modelValue"]),
@@ -4525,7 +4525,7 @@ function bu(e, t, n, s, r, o) {
             F("select", {
                 id: "weapons_select",
                 class: "block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm text-lg",
-                onInput: e => { o.weaponToAdd = e.target.value; }
+                onInput: t[30] || (t[30] = e => { r.form.weaponToAdd = e.target.value; })
             }, [
                 F("option", { value: "" }, "\u2014 \u043e\u0431\u0435\u0440\u0456\u0442\u044c \u0437\u0431\u0440\u043e\u044e \u2014"),
                 F("option", { value: "\u0456\u0437 \u0417\u041a\u0423 Viktor MR-2 14,5" }, "\u0456\u0437 \u0417\u041a\u0423 Viktor MR-2 14,5"),
@@ -4533,7 +4533,7 @@ function bu(e, t, n, s, r, o) {
             ]),
             B("button", {
                 class: "bg-sky-500 rounded text-white px-3 text-sm whitespace-nowrap",
-                onClick: t[15.5] || (t[15.5] = () => o.addWeapon())
+                onClick: t[31] || (t[31] = () => o.addWeapon())
             }, "+ \u0414\u043e\u0434\u0430\u0442\u0438")
         ]),
         r.form.selectedWeapons && r.form.selectedWeapons.length ? B("div", { class: "mt-2 flex flex-wrap gap-1" },
