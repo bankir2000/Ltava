@@ -3883,7 +3883,12 @@ const Lc = Io(Tc, [["render", Fc]])
             return {
                 title: "\u041F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u0435\u043D\u043D\u044F \u043F\u0440\u043E \u0432\u0438\u044F\u0432\u043B\u0435\u043D\u043D\u044F \u0446\u0456\u043B\u0456",
                 text: [
-    this.form.time ? `Дата: ${this.form.time}` : "",
+    (() => {
+  if (!this.form.time) return "";
+  const [datePart, timePart] = this.form.time.split(" ");
+  const [year, month, day] = datePart.split("-");
+  return `Дата: ${day}.${month}.${year}\nЧас: ${timePart}`;
+})(),
     this.form.sign ? this.form.sign : "",
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
     this.form.target ? this.form.target : "",
