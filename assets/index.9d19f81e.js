@@ -3896,19 +3896,13 @@ const Lc = Io(Tc, [["render", Fc]])
     `Підрозділ: 13 озкб`,
     this.form.sign ? `Позивний: ${this.form.sign}` : "",
     this.form.selectedWeapons && this.form.selectedWeapons.length ? `Зброя: ${this.form.selectedWeapons.join(", ")}` : "",
-    this.form.target ? this.form.target : "",
+    `Висота: ${this.form.height || 0}`,
+    `Опис: А-${this.form.azimuth || 0}, К-${this.form.direction || 0}, Д-${this.form.distance || 0}`,
+                this.form.target ? this.form.target : "",
     this.form.target_side ? this.form.target_side : "",
     this.form.target_description ? this.form.target_description : "",
     this.form.disclosure ? this.form.disclosure : "",
     this.form.number_of_targets ? `Кількість: ${this.form.number_of_targets}од.` : "",
-    (() => {
-      let coords = [];
-      if (this.form.azimuth) coords.push(`А-${this.form.azimuth}°`);
-      if (this.form.direction) coords.push(`К-${this.form.direction}°`);
-      if (this.form.height) coords.push(`Н-${this.form.height}м.`);
-      if (this.form.distance) coords.push(`Д-${this.form.distance}м.`);
-      return coords.length ? `(${coords.join(" ")})` : "";
-    })(),
     this.form.target_action ? `Результат: ${this.form.target_action}.` : "",
     (() => {
       let total = 0;
