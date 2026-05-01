@@ -1,13 +1,13 @@
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open('ppo-cache').then((cache) => {
+        caches.open(Ltava-cache').then((cache) => {
             return cache.addAll([
                 '/',
-                '/ppo/',
-                '/ppo/index.html',
-                '/ppo/assets/index.9d19f81e.js',
-                '/ppo/assets/index.7c801b86.css',
-                '/ppo/assets/favicon.4ad42837.ico'
+                '/Ltava/',
+                '/Ltava/index.html',
+                '/Ltava/assets/index.9d19f81e.js',
+                '/Ltava/assets/index.7c801b86.css',
+                '/Ltava/assets/favicon.4ad42837.ico'
             ]);
         })
     );
