@@ -3882,160 +3882,92 @@ const Lc = Io(Tc, [["render", Fc]])
         dataForClipboard() {
             return {
                 title: "\u041F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u0435\u043D\u043D\u044F \u043F\u0440\u043E \u0432\u0438\u044F\u0432\u043B\u0435\u043D\u043D\u044F \u0446\u0456\u043B\u0456",
-                text:
-  (this.form.time ? ("Дата: " + this.form.time).replace(":", ".") + " " : "") +
-  (this.form.sign ? ` ${this.form.sign}` : "") +
-  (this.form.nearestCity ? ` р-н н.п. ${this.form.nearestCity}` : "") +
-  (this.form.target ? ` ${this.form.target}` : "") +
-  (this.form.target_side ? ` ${this.form.target_side}` + " " : ``) +
-  (this.form.target_description ? ` ${this.form.target_description}` + " " : "") +
-  (this.form.tcil ? " № " + this.form.tcil + ". " : "") +
-  (this.form.disclosure ? " " + this.form.disclosure + " " : "") +
-  (this.form.number_of_targets ? ` Кількість: ${this.form.number_of_targets}од. ` : "") +
-  (() => {
-    let coords = [];
-    if (this.form.azimuth) coords.push(`А-${this.form.azimuth}°`);
-    if (this.form.direction) coords.push(`К-${this.form.direction}°`);
-    if (this.form.height) coords.push(`Н-${this.form.height}м.`);
-    if (this.form.distance) coords.push(`Д-${this.form.distance}м.`);
-    return coords.length ? ` (${coords.join(" ")})` : "";
-  })() +
-  (this.form.target_action ? " Ціль обстріляно, " + this.form.target_action + ". " : "") +
-  (() => {
-    let total = 0;
-    let bzt = 0;
-    let mdz = 0;
-    let b32 = 0;
+                text: [
+    this.form.time ? ("" + this.form.time).replace(":", ".") : "",
+    this.form.sign ? this.form.sign : "",
+    this.form.nearestCity ? `р-н н.п. ${this.form.nearestCity}` : "",
+    this.form.target ? this.form.target : "",
+    this.form.target_side ? this.form.target_side : "",
+    this.form.target_description ? this.form.target_description : "",
+    this.form.tcil ? `№ ${this.form.tcil}.` : "",
+    this.form.disclosure ? this.form.disclosure : "",
+    this.form.number_of_targets ? `Кількість: ${this.form.number_of_targets}од.` : "",
+    (() => {
+      let coords = [];
+      if (this.form.azimuth) coords.push(`А-${this.form.azimuth}°`);
+      if (this.form.direction) coords.push(`К-${this.form.direction}°`);
+      if (this.form.height) coords.push(`Н-${this.form.height}м.`);
+      if (this.form.distance) coords.push(`Д-${this.form.distance}м.`);
+      return coords.length ? `(${coords.join(" ")})` : "";
+    })(),
+    this.form.target_action ? `Ціль обстріляно, ${this.form.target_action}.` : "",
+    (() => {
+      let total = 0;
+      let bzt = 0;
+      let mdz = 0;
+      let b32 = 0;
 
-    if (this.form.ammunition_consumption) {
-      const amt = Number(this.form.ammunition_consumption);
-      total += amt;
-      const bzt1 = Math.round(amt / 4);
-      const mdz1 = amt - bzt1;
-      bzt += bzt1;
-      mdz += mdz1;
-    }
+      if (this.form.ammunition_consumption) {
+        const amt = Number(this.form.ammunition_consumption);
+        total += amt;
+        const bzt1 = Math.round(amt / 4);
+        const mdz1 = amt - bzt1;
+        bzt += bzt1;
+        mdz += mdz1;
+      }
 
-    if (this.form.dva_ammunition_consumption) {
-      const amt = Number(this.form.dva_ammunition_consumption);
-      total += amt;
-      const bzt2 = Math.round(amt / 3);
-      const mdz2 = amt - bzt2;
-      bzt += bzt2;
-      mdz += mdz2;
-    }
+      if (this.form.dva_ammunition_consumption) {
+        const amt = Number(this.form.dva_ammunition_consumption);
+        total += amt;
+        const bzt2 = Math.round(amt / 3);
+        const mdz2 = amt - bzt2;
+        bzt += bzt2;
+        mdz += mdz2;
+      }
+
       if (this.form.tre_ammunition_consumption) {
-  const amt = Number(this.form.tre_ammunition_consumption);
-  total += amt;
+        const amt = Number(this.form.tre_ammunition_consumption);
+        total += amt;
+        const fullCycles = Math.floor(amt / 4);
+        const remainder = amt % 4;
+        let bzt3 = fullCycles;
+        let b32_3 = fullCycles;
+        let mdz3 = fullCycles * 2;
+        if (remainder >= 1) bzt3 += 1;
+        if (remainder >= 2) b32_3 += 1;
+        if (remainder === 3) mdz3 += 1;
+        bzt += bzt3;
+        b32 += b32_3;
+        mdz += mdz3;
+      }
 
-  const fullCycles = Math.floor(amt / 4);
-  const remainder = amt % 4;
-
-  let bzt3 = fullCycles;
-  let b32_3 = fullCycles;
-  let mdz3 = fullCycles * 2;
-
-  if (remainder >= 1) bzt3 += 1;
-  if (remainder >= 2) b32_3 += 1;
-  if (remainder === 3) mdz3 += 1;
-
-  bzt += bzt3;
-  b32 += b32_3;
-  mdz += mdz3;
-}
-
-    return total > 0
-      ? ` Витрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.). `
-      : "";
-  })() +
-  (this.form.ak_ammunition_consumption
-    ? "Витрати БК АК74-5.45mm=" +
-      this.form.ak_ammunition_consumption +
-      "шт (в т.ч. ТЗ-" +
-      Math.round(this.form.ak_ammunition_consumption / 3) +
-      "шт., ПС-" +
-computed: {
-    dataForClipboard() {
-        return {
-            title: "Повідомлення про виявлення цілі",
-            text: [
-                // Перший рядок — час, знак, місто, ціль, сторона, опис цілі
-                [
-                    this.form.time ? ("" + this.form.time).replace(":", ".") : "",
-                    this.form.sign ? this.form.sign : "",
-                    this.form.nearestCity ? `р-н н.п. ${this.form.nearestCity}` : "",
-                    this.form.target ? this.form.target : "",
-                    this.form.target_side ? this.form.target_side : "",
-                    this.form.target_description ? this.form.target_description : "",
-                    this.form.tcil ? `№ ${this.form.tcil}.` : "",
-                    this.form.disclosure ? this.form.disclosure : "",
-                    this.form.number_of_targets ? `Кількість: ${this.form.number_of_targets}од.` : "",
-                    (() => {
-                        let coords = [];
-                        if (this.form.azimuth) coords.push(`А-${this.form.azimuth}°`);
-                        if (this.form.direction) coords.push(`К-${this.form.direction}°`);
-                        if (this.form.height) coords.push(`Н-${this.form.height}м.`);
-                        if (this.form.distance) coords.push(`Д-${this.form.distance}м.`);
-                        return coords.length ? `(${coords.join(" ")})` : "";
-                    })(),
-                    this.form.target_action ? `Ціль обстріляно, ${this.form.target_action}.` : "",
-                ].filter(Boolean).join(" "),
-
-                // Витрати БК MR2 VIKTOR
-                (() => {
-                    let total = 0, bzt = 0, mdz = 0, b32 = 0;
-                    if (this.form.ammunition_consumption) {
-                        const amt = Number(this.form.ammunition_consumption);
-                        total += amt;
-                        const bzt1 = Math.round(amt / 4);
-                        bzt += bzt1; mdz += amt - bzt1;
-                    }
-                    if (this.form.dva_ammunition_consumption) {
-                        const amt = Number(this.form.dva_ammunition_consumption);
-                        total += amt;
-                        const bzt2 = Math.round(amt / 3);
-                        bzt += bzt2; mdz += amt - bzt2;
-                    }
-                    if (this.form.tre_ammunition_consumption) {
-                        const amt = Number(this.form.tre_ammunition_consumption);
-                        total += amt;
-                        const fullCycles = Math.floor(amt / 4);
-                        const remainder = amt % 4;
-                        let bzt3 = fullCycles, b32_3 = fullCycles, mdz3 = fullCycles * 2;
-                        if (remainder >= 1) bzt3 += 1;
-                        if (remainder >= 2) b32_3 += 1;
-                        if (remainder === 3) mdz3 += 1;
-                        bzt += bzt3; b32 += b32_3; mdz += mdz3;
-                    }
-                    return total > 0
-                        ? `Витрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.).`
-                        : "";
-                })(),
-
-                // Витрати інших БК
-                this.form.ak_ammunition_consumption
-                    ? `Витрати БК АК74-5.45mm=${this.form.ak_ammunition_consumption}шт (в т.ч. ТЗ-${Math.round(this.form.ak_ammunition_consumption / 3)}шт., ПС-${this.form.ak_ammunition_consumption - Math.round(this.form.ak_ammunition_consumption / 3)}шт.).`
-                    : "",
-                this.form.dshk_ammunition_consumption
-                    ? `Витрати БК ДШК-12.7mm=${this.form.dshk_ammunition_consumption}шт.`
-                    : "",
-                this.form.browning_ammunition_consumption
-                    ? `Витрати БК Browning M2-12.7mm=${this.form.browning_ammunition_consumption}шт.`
-                    : "",
-                this.form.pkm_ammunition_consumption
-                    ? `Витрати БК ПКМ-7.62mm=${this.form.pkm_ammunition_consumption}шт.`
-                    : "",
-                this.form.m75_ammunition_consumption
-                    ? `Витрати M75-20.0mm=${this.form.m75_ammunition_consumption}шт.`
-                    : "",
-                this.form.other_weapon && this.form.other_weapon_ammo
-                    ? `Витрати БК ${this.form.other_weapon}=${this.form.other_weapon_ammo}шт.`
-                    : "",
-                this.form.description ? this.form.description : "",
-                this.form.target_action && this.form.na_bch ? `На БЧ: ${this.form.na_bch}` : "",
-            ].filter(Boolean).join("\n")
-        }
-    },
+      return total > 0
+        ? `Витрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.).`
+        : "";
+    })(),
+    this.form.ak_ammunition_consumption
+      ? `Витрати БК АК74-5.45mm=${this.form.ak_ammunition_consumption}шт (в т.ч. ТЗ-${Math.round(this.form.ak_ammunition_consumption / 3)}шт., ПС-${this.form.ak_ammunition_consumption - Math.round(this.form.ak_ammunition_consumption / 3)}шт.).`
+      : "",
+    this.form.dshk_ammunition_consumption
+      ? `Витрати БК ДШК-12.7mm=${this.form.dshk_ammunition_consumption}шт.`
+      : "",
+    this.form.browning_ammunition_consumption
+      ? `Витрати БК Browning M2-12.7mm=${this.form.browning_ammunition_consumption}шт.`
+      : "",
+    this.form.pkm_ammunition_consumption
+      ? `Витрати БК ПКМ-7.62mm=${this.form.pkm_ammunition_consumption}шт.`
+      : "",
+    this.form.m75_ammunition_consumption
+      ? `Витрати M75-20.0mm=${this.form.m75_ammunition_consumption}шт.`
+      : "",
+    this.form.other_weapon && this.form.other_weapon_ammo
+      ? `Витрати БК ${this.form.other_weapon}=${this.form.other_weapon_ammo}шт.`
+      : "",
+    this.form.description ? this.form.description : "",
+    this.form.target_action && this.form.na_bch ? `На БЧ: ${this.form.na_bch}` : "",
+  ].filter(Boolean).join("\n")
+            }
+        },
         signErrorMessage() {
             return this.form.sign && this.form.sign.length > 60 ? "\u0412\u0432\u0435\u0434\u0456\u0442\u044C \u043D\u0435 \u0431\u0456\u043B\u044C\u0448\u0435 60 \u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432" : null
         },
@@ -6152,6 +6084,8 @@ const Is = yc(vu);
 Is.use(Ec());
 Is.use(Pf);
 Is.mount("#app");
+
+
 
 
 
