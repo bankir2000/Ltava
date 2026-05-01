@@ -3885,12 +3885,12 @@ const Lc = Io(Tc, [["render", Fc]])
                 text: [
                     this.form.date ?  `Дата: ${this.form.date}` : "",
        this.form.time ?  `Час: ${this.form.time}` : "",
+                    this.form.tcil ? `№ цілі: ${this.form.tcil}.` : "",
     this.form.sign ? this.form.sign : "",
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
     this.form.target ? this.form.target : "",
     this.form.target_side ? this.form.target_side : "",
     this.form.target_description ? this.form.target_description : "",
-    this.form.tcil ? `№ цілі: ${this.form.tcil}.` : "",
     this.form.disclosure ? this.form.disclosure : "",
     this.form.number_of_targets ? `Кількість: ${this.form.number_of_targets}од.` : "",
     (() => {
