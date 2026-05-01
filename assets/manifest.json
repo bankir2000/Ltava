@@ -1,7 +1,7 @@
 {
-  "name": "ППО СМС",
-  "short_name": "ППО СМС",
-  "start_url": "/ppo/",
+  "name": "ЛТАВА СМС",
+  "short_name": "ЛТАВА СМС",
+  "start_url": "/Ltava/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
