@@ -3886,7 +3886,7 @@ const Lc = Io(Tc, [["render", Fc]])
                     this.form.date ?  `Дата: ${this.form.date}` : "",
        this.form.time ?  `Час: ${this.form.time}` : "",
                     this.form.tcil ? `№ цілі: ${this.form.tcil}.` : "",
-    this.form.sign ? this.form.sign : "",
+    this.form.sign ? `Позивний: ${this.form.sign}` : "",
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
     this.form.target ? this.form.target : "",
     this.form.target_side ? this.form.target_side : "",
