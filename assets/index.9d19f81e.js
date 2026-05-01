@@ -3889,9 +3889,9 @@ const Lc = Io(Tc, [["render", Fc]])
                 title: "\u041F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u0435\u043D\u043D\u044F \u043F\u0440\u043E \u0432\u0438\u044F\u0432\u043B\u0435\u043D\u043D\u044F \u0446\u0456\u043B\u0456",
                 text: [
     this.form.date ?  `Дата: ${this.form.date}` : "",
-    this.form.time ?  `Час: ${this.form.time}` : "",
-    this.form.tcil ? `№ цілі: ${this.form.tcil}` : "",
-                `Результат: ${this.form.target_action || "не застосовувались"}.`,
+    this.form.time ?  `Час: ${this.form.time} || `,
+    `№ цілі: ${this.form.tcil} || "б/н"`,
+                `Результат: ${this.form.target_action || "не застосовувались"}`,
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
     this.form.oblast ? `Обл.: ${this.form.oblast}` : "",
     `Підрозділ: 13 озкб`,
