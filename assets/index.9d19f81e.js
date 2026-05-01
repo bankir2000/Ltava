@@ -3891,6 +3891,7 @@ const Lc = Io(Tc, [["render", Fc]])
     this.form.date ?  `Дата: ${this.form.date}` : "",
     this.form.time ?  `Час: ${this.form.time}` : "",
     this.form.tcil ? `№ цілі: ${this.form.tcil}` : "",
+                `Результат: ${this.form.target_action || "не застосовувались"}.`,
     this.form.nearestCity ? `Н.П. ${this.form.nearestCity}` : "",
     this.form.oblast ? `Обл.: ${this.form.oblast}` : "",
     `Підрозділ: 13 озкб`,
@@ -3903,7 +3904,6 @@ const Lc = Io(Tc, [["render", Fc]])
     this.form.target_description ? this.form.target_description : "",
     this.form.disclosure ? this.form.disclosure : "",
     this.form.number_of_targets ? `Кількість: ${this.form.number_of_targets}од.` : "",
-    this.form.target_action ? `Результат: ${this.form.target_action}.` : "",
     (() => {
       let total = 0;
       let bzt = 0;
