@@ -1,7 +1,7 @@
 // Service Worker — PWA офлайн кешування
 // https://bankir2000.github.io/Ltava/
 
-const CACHE = 'ltava-v2';
+const CACHE = 'ltava-v3';
 const BASE = '/Ltava/';
 
 const ASSETS = [
