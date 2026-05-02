@@ -276,6 +276,19 @@
             </div>
           </div>
 
+          <!-- АК74 БЛОК РОЗХОДУ -->
+          <div v-if="showAk74" class="flex flex-col gap-3 mb-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-300">АК74-5.45mm</label>
+              <input
+                type="tel"
+                v-model="formData.ak74Ammo"
+                placeholder="Кількість"
+                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              />
+            </div>
+          </div>
+
           <!-- ОПИС, якщо результат = "вибух" -->
           <div v-if="formData.result === 'вибух'" class="my-4 space-y-2">
             <label>Опис:</label>
@@ -653,6 +666,7 @@
           viktorAmmo1: '',
           viktorAmmo2: '',
           viktorAmmo3: '',
+          ak74Ammo: '',
           personnel: [{ rank: '', pib: '' }],
           explosionCount: '',
           explosionPlace: '',
@@ -870,14 +884,20 @@
 
       computed: {
         isViktor() {
-          const viktorName = 'із ЗКУ Viktor MR-2 14.5';
-          return this.formData.weapons.some(w => w.name === viktorName);
+          return this.formData.weapons.some(w => w.name === 'із ЗКУ Viktor MR-2 14.5');
+        },
+        isRifle545() {
+          return this.formData.weapons.some(w => w.name === 'зі стрілецької зброї 5.45/5.56');
         },
         showViktorAmmo() {
           return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
+        showAk74() {
+          return this.isRifle545 && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
+        },
         showRozxid() {
-          return !this.showViktorAmmo &&
+          const specialAmmo = this.showViktorAmmo || this.showAk74;
+          return !specialAmmo &&
             this.formData.result !== 'не застосовувалась' &&
             this.formData.result !== 'вибух';
         }
@@ -1047,6 +1067,7 @@
             viktorAmmo1: '',
             viktorAmmo2: '',
             viktorAmmo3: '',
+            ak74Ammo: '',
             explosionCount: '',
             explosionPlace: '',
             explosionStatus: '',
@@ -1215,7 +1236,17 @@
             }
 
             if (total > 0) {
-              text += `\nВитрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.)`;
+              text += `\nНабій 14,5х114 мм (ЗПУ, КПВТ) БЗТ-${bzt}\nНабій 14,5х114 мм (ЗПУ, КПВТ) МДЗ-${mdz}\nНабій 14,5х114 мм (ЗПУ, КПВТ) Б-32 -${b32}`;
+            }
+          }
+
+          // AK74 розрахунок БК
+          if (this.showAk74) {
+            const amt = Number(this.formData.ak74Ammo);
+            if (amt > 0) {
+              const tz = Math.round(amt / 3);
+              const ps = amt - tz;
+              text += `\nНабій 5,45х39 мм ТЗ-${tz}\nНабій 5,45х39 мм ПС-${ps}`;
             }
           }
 
