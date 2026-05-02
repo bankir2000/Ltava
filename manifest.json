@@ -1,7 +1,7 @@
 {
   "name": "Лтава",
   "short_name": "Лтава",
-  "description": "Форма фіксації застосування зброї",
+  "description": "Лтава",
   "start_url": "/Ltava/index.html",
   "scope": "/Ltava/",
   "display": "standalone",
