@@ -1,25 +1,111 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Форма застосування</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Застосування</title>
 
-  <!-- TailwindCSS для швидкої та простої стилізації -->
+  <!-- PWA -->
+  <link rel="manifest" href="/Ltava/manifest.json">
+  <meta name="theme-color" content="#f0f4f8">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Застосування">
+  <link rel="apple-touch-icon" href="/Ltava/icon-192.png">
+
+  <!-- TailwindCSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Підключення Vue 2 -->
+  <!-- Vue 2 -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
-  <!-- Плагін vue-the-mask для масок введення (номери, кути тощо) -->
+  <!-- vue-the-mask -->
   <script src="https://unpkg.com/vue-the-mask@0.11.1/dist/vue-the-mask.js"></script>
+
+  <style>
+    /* ===== СОНЯЧНА ТЕМА — висококонтрастна, легко читається на сонці ===== */
+
+    :root {
+      --bg:        #f0f4f8;
+      --surface:   #ffffff;
+      --border:    #94a3b8;
+      --text:      #0f172a;
+      --text-dim:  #475569;
+      --accent:    #1d4ed8;
+      --accent-h:  #1e40af;
+      --success:   #15803d;
+      --danger:    #b91c1c;
+      --danger-h:  #991b1b;
+      --cyan:      #0369a1;
+      --input-bg:  #e2e8f0;
+      --sticky-bg: #f0f4f8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      margin: 0;
+    }
+
+    /* Touch-targets ≥ 44px, без zoom на iOS */
+    select, input[type="text"], input[type="tel"],
+    input[type="date"], input[type="time"], textarea {
+      min-height: 44px;
+      font-size: 16px !important;
+      background: var(--input-bg) !important;
+      color: var(--text) !important;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 6px;
+    }
+    select option { color: var(--text); background: var(--surface); }
+    button { min-height: 44px; font-size: 15px; font-weight: 600; }
+
+    textarea { resize: vertical; }
+
+    /* Label */
+    label { color: var(--text); font-weight: 600; font-size: 14px; }
+
+    /* Липкі кнопки внизу */
+    .sticky-buttons {
+      position: sticky;
+      bottom: 0;
+      background: var(--sticky-bg);
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      border-top: 2px solid var(--border);
+      z-index: 10;
+    }
+
+    /* На малих екранах — на всю ширину */
+    @media (max-width: 640px) {
+      .mobile-container {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        min-height: 100dvh;
+      }
+    }
+  </style>
 </head>
 
-<body class="bg-gray-500 text-white min-h-screen py-5">
+<body>
 
   <!-- Кореневий елемент Vue-додатку -->
   <div id="app">
-    <div class="container max-w-xl mx-auto bg-gray-900 p-6 rounded-xl shadow-2xl border border-gray-800">
+    <div class="mobile-container container max-w-xl mx-auto px-4 pt-4 pb-2 sm:rounded-xl sm:my-5 sm:shadow-lg" style="background:var(--surface)">
       <!-- Форма. @submit.prevent блокує стандартну відправку -->
       <form id="form" @submit.prevent>
         <div class="flex flex-col gap-1">
@@ -31,7 +117,7 @@
             <select
               id="pidrozdil"
               v-model="formData.pidrozdil"
-              :class="['w-full p-2 rounded bg-[#454353]', formData.pidrozdil ? 'text-gray-900' : 'text-gray-400']"
+              :class="['w-full p-2 rounded rounded', formData.pidrozdil ? 'text-gray-900' : 'text-gray-400']"
             >
               <option value="" disabled hidden>Оберіть зі списку</option>
               <option v-for="unit in units" :key="unit" :value="unit">{{ unit }}</option>
@@ -46,7 +132,7 @@
               <select
                 id="pozivniy-prefix"
                 v-model="formData.pozivniyPrefix"
-                :class="['w-1/3 p-2 rounded bg-[#454353]', formData.pozivniyPrefix ? 'text-gray-900' : 'text-gray-400']"
+                :class="['w-1/3 p-2 rounded rounded', formData.pozivniyPrefix ? 'text-gray-900' : 'text-gray-400']"
               >
                 <option value="" disabled hidden>Оберіть</option>
                 <option v-for="prefix in prefixes" :key="prefix" :value="prefix">{{ prefix }}</option>
@@ -57,7 +143,7 @@
                 id="pozivniy"
                 type="text"
                 v-model="formData.pozivniy"
-                class="w-2/3 p-2 rounded bg-[#454353] text-gray-900"
+                class="w-2/3 p-2 rounded rounded"
                 mask="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 :tokens="hexTokens"
                 placeholder="Впишіть"
@@ -74,7 +160,7 @@
                 id="naseleniy-punkt"
                 type="text"
                 v-model="formData.naseleniyPunkt"
-                class="flex-1 p-2 rounded bg-[#454353] text-gray-900"
+                class="flex-1 p-2 rounded rounded"
                 mask="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
                 :tokens="hexTokens"
                 placeholder="Впишіть"
@@ -90,7 +176,7 @@
               <select
                 id="oblast"
                 v-model="formData.oblast"
-                :class="['w-full p-2 rounded bg-[#454353]', formData.oblast ? 'text-gray-900' : 'text-gray-400']"
+                :class="['w-full p-2 rounded rounded', formData.oblast ? 'text-gray-900' : 'text-gray-400']"
               >
                 <option value="" disabled hidden>Оберіть зі списку</option>
                 <option v-for="region in regions" :key="region" :value="region">{{ region }}</option>
@@ -104,9 +190,9 @@
               <label class="text-left">Час виявлення цілі:</label>
               <div class="flex gap-1">
                 <button type="button" @click="adjustTime(-1)"
-                  class="bg-cyan-500 hover:bg-cyan-600 text-white text-sm rounded px-2 py-1">-1 хв.</button>
+                  class="hover:opacity-90 text-white text-sm rounded px-2 py-1" style="background:var(--cyan)">-1 хв.</button>
                 <button type="button" @click="adjustTime(1)"
-                  class="bg-cyan-500 hover:bg-cyan-600 text-white text-sm rounded px-2 py-1">+1 хв.</button>
+                  class="hover:opacity-90 text-white text-sm rounded px-2 py-1" style="background:var(--cyan)">+1 хв.</button>
               </div>
             </div>
             <input
@@ -114,7 +200,7 @@
               v-model="formData.datetime"
               @change="parseDatetime"
               placeholder="дд.мм.рррр гг:хх"
-              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              class="w-full p-2 rounded rounded"
             />
           </div>
 
@@ -130,7 +216,7 @@
               >
                 <select
                   v-model="w.name"
-                  :class="['w-full p-2 rounded bg-[#454353]', w.name ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', w.name ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Оберіть зі списку</option>
                   <option
@@ -144,7 +230,7 @@
                 <!-- Кнопка "Видалити" показується, якщо зброї більше однієї -->
                 <button
                   type="button"
-                  class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                  class="hover:opacity-90 text-white rounded px-3 py-2" style="background:var(--danger)"
                   @click="removeWeapon(index)"
                   v-if="formData.weapons.length > 1"
                 >
@@ -155,7 +241,7 @@
               <button
                 type="button"
                 @click="addWeapon"
-                class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2 self-start"
+                class="hover:opacity-90 text-white rounded px-3 py-2 mt-2 self-start" style="background:var(--accent)"
               >
                 Додати зброю
               </button>
@@ -172,7 +258,7 @@
               v-model="formData.targetNumber"
               v-mask="'####'"
               placeholder="0000"
-              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              class="w-full p-2 rounded rounded"
             />
           </div>
 
@@ -185,7 +271,7 @@
               v-model="formData.height"
               v-mask="'####'"
               placeholder="0000"
-              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              class="w-full p-2 rounded rounded"
             />
           </div>
 
@@ -194,7 +280,7 @@
             <label class="mb-1 text-left">Результат:</label>
             <select
               v-model="formData.result"
-              :class="['w-full p-2 rounded bg-[#454353]', formData.result ? 'text-gray-900' : 'text-gray-400']"
+              :class="['w-full p-2 rounded rounded', formData.result ? 'text-gray-900' : 'text-gray-400']"
             >
               <option value="" disabled hidden>Оберіть зі списку</option>
               <option v-for="result in results" :key="result" :value="result">{{ result }}</option>
@@ -210,7 +296,7 @@
                 <!-- Тип боєприпаса -->
                 <select
                   v-model="item.type"
-                  :class="['w-full p-2 rounded bg-[#454353]', item.type ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', item.type ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Оберіть зі списку</option>
                   <option v-for="ammo in ammoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
@@ -222,11 +308,11 @@
                     v-model="item.quantity"
                     placeholder="Кількість"
                     v-mask="'####'"
-                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    class="w-full p-2 rounded rounded"
                   />
                   <button
                     type="button"
-                    class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                    class="hover:opacity-90 text-white rounded px-3 py-2" style="background:var(--danger)"
                     @click="removeRozxid(index)"
                   >
                     Видалити
@@ -237,7 +323,7 @@
               <button
                 type="button"
                 @click="addRozxid"
-                class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2"
+                class="hover:opacity-90 text-white rounded px-3 py-2 mt-2" style="background:var(--accent)"
               >
                 Додати розхід
               </button>
@@ -248,30 +334,30 @@
           <div v-if="showViktorAmmo" class="flex flex-col gap-3 mb-2">
             <div class="mb-1">Розхід БК ЗУ MR2 VIKTOR 14,5мм:</div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-3МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-3МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo1"
                 placeholder="Кількість"
-                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                class="w-full p-2 rounded rounded"
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-2МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-2МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo2"
                 placeholder="Кількість"
-                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                class="w-full p-2 rounded rounded"
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-1Б32-2МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-1Б32-2МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo3"
                 placeholder="Кількість"
-                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                class="w-full p-2 rounded rounded"
               />
             </div>
           </div>
@@ -279,12 +365,12 @@
           <!-- АК74 БЛОК РОЗХОДУ -->
           <div v-if="showAk74" class="flex flex-col gap-3 mb-2">
             <div class="flex flex-col gap-1">
-              <label class="text-sm text-gray-300">АК74-5.45mm</label>
+              <label class="text-sm font-semibold" style="color:var(--text-dim)">АК74-5.45mm</label>
               <input
                 type="tel"
                 v-model="formData.ak74Ammo"
                 placeholder="Кількість"
-                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                class="w-full p-2 rounded rounded"
               />
             </div>
           </div>
@@ -302,7 +388,7 @@
                   v-mask="'###'"
                   placeholder="360"
                   maxlength="3"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                   @input="onAngleInput"
                 />
                 <span class="w-auto">Д-</span>
@@ -314,7 +400,7 @@
                   pattern="\d*"
                   placeholder="00000"
                   maxlength="5"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                 />
               </div>
 
@@ -324,18 +410,17 @@
                   type="text"
                   value="вибух"
                   readonly
-                  class="w-full p-2 rounded bg-transparent border-gray-700 border-2 text-center text-gray-300"
-                />
+                  class="w-full p-2 rounded"                />
                 <select
                   v-model="formData.explosionCount"
-                  :class="['w-full p-2 rounded bg-[#454353]', formData.explosionCount ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', formData.explosionCount ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Кількість</option>
                   <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
                 </select>
                 <select
                   v-model="formData.explosionPlace"
-                  :class="['w-full p-2 rounded bg-[#454353]', formData.explosionPlace ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', formData.explosionPlace ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Місце</option>
                   <option value="на землі">на землі</option>
@@ -348,7 +433,7 @@
                 <input
                   type="text"
                   v-model="formData.explosionStatus"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                   placeholder="Стан справ на ОКІ"
                   maxlength="64"
                 />
@@ -370,7 +455,7 @@
                     v-mask="'###'"
                     placeholder="360"
                     maxlength="3"
-                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    class="w-full p-2 rounded rounded"
                     @input="onAngleInput"
                   />
                 </div>
@@ -384,7 +469,7 @@
                     pattern="\d*"
                     placeholder="00000"
                     maxlength="5"
-                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    class="w-full p-2 rounded rounded"
                   />
                 </div>
                 <div class="flex items-center gap-1 w-1/3">
@@ -395,7 +480,7 @@
                     v-mask="'###'"
                     placeholder="360"
                     maxlength="3"
-                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    class="w-full p-2 rounded rounded"
                     @input="onKrokInput"
                   />
                 </div>
@@ -410,21 +495,19 @@
                     type="text"
                     value="обстріляно"
                     readonly
-                    class="w-full p-2 rounded bg-transparent border-gray-700 border text-center text-gray-300"
-                  />
+                    class="w-full p-2 rounded"                  />
                   <!-- Якщо результат "ЗНИЩЕНО" — фіксований напис "ЗНИЩЕНО" -->
                   <input
                     v-else-if="formData.result === 'ЗНИЩЕНО'"
                     type="text"
                     value="ЗНИЩЕНО"
                     readonly
-                    class="w-full p-2 rounded bg-transparent border-gray-700 border text-center text-gray-300"
-                  />
+                    class="w-full p-2 rounded"                  />
                   <!-- Інші випадки: можна вибрати дію вручну -->
                   <select
                     v-else
                     v-model="formData.action"
-                    :class="['w-full p-2 rounded bg-[#454353]', formData.action ? 'text-gray-900' : 'text-gray-400']"
+                    :class="['w-full p-2 rounded rounded', formData.action ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Оберіть дію</option>
                     <option v-for="action in actions" :key="action" :value="action">{{ action }}</option>
@@ -435,7 +518,7 @@
                 <div class="w-1/3">
                   <select
                     v-model="formData.targetCount"
-                    :class="['w-full p-2 rounded bg-[#454353]', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
+                    :class="['w-full p-2 rounded rounded', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Кількість</option>
                     <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
@@ -446,7 +529,7 @@
                 <div class="w-1/3 flex flex-col gap-2">
                   <select
                     v-model="formData.targetClass"
-                    :class="['w-full p-2 rounded bg-[#454353]', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                    :class="['w-full p-2 rounded rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Клас</option>
                     <option value="БПЛА">БПЛА</option>
@@ -455,7 +538,7 @@
                   <select
                     v-if="formData.targetClass === 'БПЛА'"
                     v-model="formData.type"
-                    :class="['w-full p-2 rounded bg-[#454353]', formData.type ? 'text-gray-900' : 'text-gray-400']"
+                    :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Тип БПЛА</option>
                     <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
@@ -478,7 +561,7 @@
                   v-mask="'###'"
                   placeholder="360"
                   maxlength="3"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                   @input="onAngleInput"
                 />
                 <span class="w-auto">Д-</span>
@@ -490,7 +573,7 @@
                   pattern="\d*"
                   placeholder="00000"
                   maxlength="5"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                 />
                 <span class="w-auto">К-</span>
                 <input
@@ -499,7 +582,7 @@
                   v-mask="'###'"
                   placeholder="360"
                   maxlength="3"
-                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  class="w-full p-2 rounded rounded"
                   @input="onKrokInput"
                 />
               </div>
@@ -508,7 +591,7 @@
               <div class="flex flex-row gap-2 w-full">
                 <select
                   v-model="formData.detectionMode"
-                  :class="['w-full p-2 rounded bg-[#454353]', formData.detectionMode ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', formData.detectionMode ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Виявлено</option>
                   <option value="акустично">акустично</option>
@@ -516,14 +599,14 @@
                 </select>
                 <select
                   v-model="formData.targetCount"
-                  :class="['w-full p-2 rounded bg-[#454353]', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Кільк.</option>
                   <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
                 </select>
                 <select
                   v-model="formData.targetClass"
-                  :class="['w-full p-2 rounded bg-[#454353]', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                  :class="['w-full p-2 rounded rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
                 >
                   <option value="" disabled hidden>Клас</option>
                   <option value="БПЛА">БПЛА</option>
@@ -535,7 +618,7 @@
               <select
                 v-if="formData.targetClass === 'БПЛА'"
                 v-model="formData.type"
-                :class="['w-full p-2 rounded bg-[#454353]', formData.type ? 'text-gray-900' : 'text-gray-400']"
+                :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
               >
                 <option value="" disabled hidden>Тип БПЛА</option>
                 <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
@@ -551,7 +634,7 @@
               id="comment"
               v-model="formData.comment"
               rows="3"
-              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              class="w-full p-2 rounded rounded"
               placeholder="Додаткові відомості..."
             ></textarea>
           </div>
@@ -569,7 +652,7 @@
                 >
                   <select
                     v-model="person.rank"
-                    :class="['w-full p-2 rounded bg-[#454353]', person.rank ? 'text-gray-900' : 'text-gray-400']"
+                    :class="['w-full p-2 rounded rounded', person.rank ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Звання</option>
                     <option v-for="rank in ranks" :key="rank" :value="rank">{{ rank }}</option>
@@ -578,11 +661,11 @@
                     type="text"
                     v-model="person.pib"
                     placeholder="Залужний В.Ф."
-                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    class="w-full p-2 rounded rounded"
                   />
                   <button
                     type="button"
-                    class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                    class="hover:opacity-90 text-white rounded px-3 py-2" style="background:var(--danger)"
                     @click="removePersonnel(index)"
                   >
                     Видалити
@@ -593,7 +676,7 @@
                 <button
                   type="button"
                   @click="addPersonnel"
-                  class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2"
+                  class="hover:opacity-90 text-white rounded px-3 py-2 mt-2" style="background:var(--accent)"
                 >
                   Додати особовий склад
                 </button>
@@ -602,12 +685,12 @@
           </div>
 
           <!-- КНОПКИ: СКОПІЮВАТИ / ОЧИСТИТИ -->
-          <div class="flex flex-col items-start gap-2 mt-4">
+          <div class="sticky-buttons flex flex-col items-start gap-2 mt-4">
             <!-- Копіює сформований текст у буфер обміну -->
             <button
               type="button"
               @click="copyData"
-              :class="['rounded px-3 py-4 w-full text-white transition-colors duration-300', copySuccess ? 'bg-green-500' : 'bg-green-700 hover:bg-green-800']"
+              :style="{background: copySuccess ? '#16a34a' : '#15803d'}" class="rounded px-3 py-4 w-full text-white transition-colors duration-300 hover:opacity-90"
             >
               {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
             </button>
@@ -616,7 +699,7 @@
             <button
               type="button"
               @click="clearForm"
-              class="bg-transparent border border-gray-700 hover:bg-gray-800 text-white rounded px-3 py-2 w-auto"
+              class="border-2 hover:opacity-80 rounded px-3 py-2 w-auto" style="border-color:var(--border);background:transparent;color:var(--text)"
             >
               Очистити форму
             </button>
@@ -1276,6 +1359,16 @@
         }
       }
     });
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/Ltava/sw.js', { scope: '/Ltava/' })
+          .then(r => console.log('SW:', r.scope))
+          .catch(e => console.warn('SW помилка:', e));
+      });
+    }
   </script>
 </body>
 </html>
