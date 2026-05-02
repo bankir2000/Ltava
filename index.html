@@ -1,32 +1,1126 @@
+
 <!DOCTYPE html>
 <html lang="uk">
-    <link rel="manifest" href="assets/manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/assets/service-worker.js')
-      .then((reg) => console.log('Service Worker зареєстровано', reg))
-      .catch((err) => console.error('Помилка реєстрації Service Worker', err));
-  }
-</script>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Лтава</title>
-    <link rel="icon" href="assets/favicon.4ad42837.ico"/>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-PDCMQVM');</script>
-    <!-- End Google Tag Manager -->
-  <script type="module" crossorigin src="assets/index.9d19f81e.js"></script>
-  <link rel="stylesheet" href="assets/index.7c801b86.css">
-</head>
-<body class="min-h-screen bg-gray-100 dark:bg-gray-900">
-<div id="app"></div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Форма застосування</title>
 
+  <!-- TailwindCSS для швидкої та простої стилізації -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Підключення Vue 2 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+  <!-- Плагін vue-the-mask для масок введення (номери, кути тощо) -->
+  <script src="https://unpkg.com/vue-the-mask@0.11.1/dist/vue-the-mask.js"></script>
+</head>
+
+<body class="bg-gray-500 text-white min-h-screen py-5">
+
+  <!-- Кореневий елемент Vue-додатку -->
+  <div id="app">
+    <div class="container max-w-xl mx-auto bg-gray-900 p-6 rounded-xl shadow-2xl border border-gray-800">
+      <!-- Форма. @submit.prevent блокує стандартну відправку -->
+      <form id="form" @submit.prevent>
+        <div class="flex flex-col gap-1">
+
+          <!-- ПІДРОЗДІЛ -->
+          <div class="flex flex-col mb-2">
+            <label for="pidrozdil" class="mb-1 text-left">Підрозділ:</label>
+            <!-- Випадаючий список з масиву units -->
+            <select
+              id="pidrozdil"
+              v-model="formData.pidrozdil"
+              :class="['w-full p-2 rounded bg-[#454353]', formData.pidrozdil ? 'text-gray-900' : 'text-gray-400']"
+            >
+              <option value="" disabled hidden>Оберіть зі списку</option>
+              <option v-for="unit in units" :key="unit" :value="unit">{{ unit }}</option>
+            </select>
+          </div>
+
+          <!-- ПОЗИВНИЙ (префікс + сам позивний з маскою) -->
+          <div class="flex flex-col mb-2">
+            <label for="pozivniy" class="mb-1 text-left">Позивний:</label>
+            <div class="flex gap-2 w-full">
+              <!-- Префікс позивного (напр. ВГ / МВГ) -->
+              <select
+                id="pozivniy-prefix"
+                v-model="formData.pozivniyPrefix"
+                :class="['w-1/3 p-2 rounded bg-[#454353]', formData.pozivniyPrefix ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Оберіть</option>
+                <option v-for="prefix in prefixes" :key="prefix" :value="prefix">{{ prefix }}</option>
+              </select>
+
+              <!-- Сам позивний: тільки літери/цифри, автоматичний аперкейс -->
+              <the-mask
+                id="pozivniy"
+                type="text"
+                v-model="formData.pozivniy"
+                class="w-2/3 p-2 rounded bg-[#454353] text-gray-900"
+                mask="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                :tokens="hexTokens"
+                placeholder="Впишіть"
+              />
+            </div>
+          </div>
+
+          <!-- НАСЕЛЕНИЙ ПУНКТ -->
+          <div class="flex flex-col mb-2">
+            <label for="naseleniy-punkt" class="mb-1 text-left">Н.П.:</label>
+            <div class="flex flex-row gap-2 items-center w-full">
+              <!-- Маска дозволяє літери, пробіли, автоматичний аперкейс -->
+              <the-mask
+                id="naseleniy-punkt"
+                type="text"
+                v-model="formData.naseleniyPunkt"
+                class="flex-1 p-2 rounded bg-[#454353] text-gray-900"
+                mask="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                :tokens="hexTokens"
+                placeholder="Впишіть"
+              />
+            </div>
+          </div>
+
+          <!-- ОБЛАСТЬ -->
+          <div class="flex flex-col mb-2">
+            <label for="oblast" class="mb-1 text-left">Область:</label>
+            <div class="flex gap-2 w-full">
+              <!-- Область одразу у короткій формі: Сумська, Чернігівська тощо -->
+              <select
+                id="oblast"
+                v-model="formData.oblast"
+                :class="['w-full p-2 rounded bg-[#454353]', formData.oblast ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Оберіть зі списку</option>
+                <option v-for="region in regions" :key="region" :value="region">{{ region }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ДАТА -->
+          <div class="flex flex-col mb-2">
+            <label for="date" class="mb-1 text-left">Дата:</label>
+            <input
+              id="date"
+              type="date"
+              v-model="formData.date"
+              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+            />
+          </div>
+
+          <!-- ЧАС -->
+          <div class="flex flex-col mb-2">
+            <label for="time" class="mb-1 text-left">Час:</label>
+            <input
+              id="time"
+              type="time"
+              v-model="formData.time"
+              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+            />
+          </div>
+
+          <!-- ЗБРОЯ (ТЕПЕР МОЖНА КІЛЬКА ЗАПИСІВ) -->
+          <div class="flex flex-col mb-2">
+            <label class="mb-1 text-left">Зброя:</label>
+            <div class="flex flex-col gap-2">
+              <!-- Один запис зброї -->
+              <div
+                v-for="(w, index) in formData.weapons"
+                :key="index"
+                class="flex gap-2 items-center"
+              >
+                <select
+                  v-model="w.name"
+                  :class="['w-full p-2 rounded bg-[#454353]', w.name ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Оберіть зі списку</option>
+                  <option
+                    v-for="weaponOption in weapons"
+                    :key="weaponOption"
+                    :value="weaponOption"
+                  >
+                    {{ weaponOption }}
+                  </option>
+                </select>
+                <!-- Кнопка "Видалити" показується, якщо зброї більше однієї -->
+                <button
+                  type="button"
+                  class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                  @click="removeWeapon(index)"
+                  v-if="formData.weapons.length > 1"
+                >
+                  Видалити
+                </button>
+              </div>
+              <!-- Додати ще одну зброю -->
+              <button
+                type="button"
+                @click="addWeapon"
+                class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2 self-start"
+              >
+                Додати зброю
+              </button>
+            </div>
+          </div>
+
+          <!-- НОМЕР ЦІЛІ -->
+          <div class="flex flex-col mb-2">
+            <label for="target-number" class="mb-1 text-left">№ цілі:</label>
+            <!-- Маска ####: тільки 4 цифри -->
+            <input
+              id="target-number"
+              type="text"
+              v-model="formData.targetNumber"
+              v-mask="'####'"
+              placeholder="0000"
+              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+            />
+          </div>
+
+          <!-- ВИСОТА -->
+          <div class="flex flex-col mb-2">
+            <label for="height" class="mb-1 text-left">Висота:</label>
+            <input
+              id="height"
+              type="text"
+              v-model="formData.height"
+              v-mask="'####'"
+              placeholder="0000"
+              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+            />
+          </div>
+
+          <!-- РЕЗУЛЬТАТ ЗАСТОСУВАННЯ -->
+          <div class="flex flex-col mb-2">
+            <label class="mb-1 text-left">Результат:</label>
+            <select
+              v-model="formData.result"
+              :class="['w-full p-2 rounded bg-[#454353]', formData.result ? 'text-gray-900' : 'text-gray-400']"
+            >
+              <option value="" disabled hidden>Оберіть зі списку</option>
+              <option v-for="result in results" :key="result" :value="result">{{ result }}</option>
+            </select>
+          </div>
+
+          <!-- РОЗХІД БОЄПРИПАСІВ (показується, якщо зброя застосовувалась і це не вибух) -->
+          <div v-if="showRozxid">
+            <div class="mb-2">Розхід:</div>
+            <div class="flex flex-col gap-2">
+              <!-- Один рядок розходу БК -->
+              <div v-for="(item, index) in formData.rozxid" :key="index" class="flex flex-col gap-2 items-start">
+                <!-- Тип боєприпаса -->
+                <select
+                  v-model="item.type"
+                  :class="['w-full p-2 rounded bg-[#454353]', item.type ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Оберіть зі списку</option>
+                  <option v-for="ammo in ammoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
+                </select>
+                <!-- Кількість + кнопка видалення рядка -->
+                <div class="flex w-full gap-2">
+                  <input
+                    type="text"
+                    v-model="item.quantity"
+                    placeholder="Кількість"
+                    v-mask="'####'"
+                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  />
+                  <button
+                    type="button"
+                    class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                    @click="removeRozxid(index)"
+                  >
+                    Видалити
+                  </button>
+                </div>
+              </div>
+              <!-- Кнопка додати ще один рядок розходу -->
+              <button
+                type="button"
+                @click="addRozxid"
+                class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2"
+              >
+                Додати розхід
+              </button>
+            </div>
+          </div>
+
+          <!-- ОПИС, якщо результат = "вибух" -->
+          <div v-if="formData.result === 'вибух'" class="my-4 space-y-2">
+            <label>Опис:</label>
+            <div class="flex flex-col gap-2">
+              <!-- Азимут/дальність -->
+              <div class="flex w-full flex-row items-center gap-4">
+                <span class="w-auto">А-</span>
+                <input
+                  type="text"
+                  v-model="formData.angle"
+                  v-mask="'###'"
+                  placeholder="360"
+                  maxlength="3"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  @input="onAngleInput"
+                />
+                <span class="w-auto">Д-</span>
+                <input
+                  type="text"
+                  v-model="formData.distance"
+                  v-mask="'#####'"
+                  inputmode="numeric"
+                  pattern="\d*"
+                  placeholder="00000"
+                  maxlength="5"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                />
+              </div>
+
+              <!-- Вибух: кількість, місце (на землі / у повітрі) -->
+              <div class="flex gap-4">
+                <input
+                  type="text"
+                  value="вибух"
+                  readonly
+                  class="w-full p-2 rounded bg-transparent border-gray-700 border-2 text-center text-gray-300"
+                />
+                <select
+                  v-model="formData.explosionCount"
+                  :class="['w-full p-2 rounded bg-[#454353]', formData.explosionCount ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Кількість</option>
+                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                </select>
+                <select
+                  v-model="formData.explosionPlace"
+                  :class="['w-full p-2 rounded bg-[#454353]', formData.explosionPlace ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Місце</option>
+                  <option value="на землі">на землі</option>
+                  <option value="у повітрі">у повітрі</option>
+                </select>
+              </div>
+
+              <!-- Стан справ (короткий текст) -->
+              <div>
+                <input
+                  type="text"
+                  v-model="formData.explosionStatus"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  placeholder="Стан справ на ОКІ"
+                  maxlength="64"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- ОПИС, якщо зброя застосовувалась (не вибух, не "не застосовувалась") -->
+          <div v-if="formData.result !== 'вибух' && formData.result !== 'не застосовувалась'" class="my-4">
+            <label>Опис:</label>
+            <div class="flex flex-col gap-2">
+              <!-- А, Д, К -->
+              <div class="flex flex-row gap-4">
+                <div class="flex items-center gap-1 w-1/3">
+                  <span>А-</span>
+                  <input
+                    type="text"
+                    v-model="formData.angle"
+                    v-mask="'###'"
+                    placeholder="360"
+                    maxlength="3"
+                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    @input="onAngleInput"
+                  />
+                </div>
+                <div class="flex items-center gap-1 w-1/3">
+                  <span>Д-</span>
+                  <input
+                    type="text"
+                    v-model="formData.distance"
+                    v-mask="'#####'"
+                    inputmode="numeric"
+                    pattern="\d*"
+                    placeholder="00000"
+                    maxlength="5"
+                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  />
+                </div>
+                <div class="flex items-center gap-1 w-1/3">
+                  <span>К-</span>
+                  <input
+                    type="text"
+                    v-model="formData.krok"
+                    v-mask="'###'"
+                    placeholder="360"
+                    maxlength="3"
+                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                    @input="onKrokInput"
+                  />
+                </div>
+              </div>
+
+              <!-- Дія (обстріляно/знищено), кількість, клас цілі -->
+              <div class="flex flex-row gap-4 mt-2">
+                <div class="w-1/3">
+                  <!-- Якщо результат "не знищено" — фіксований напис "обстріляно" -->
+                  <input
+                    v-if="formData.result === 'не знищено'"
+                    type="text"
+                    value="обстріляно"
+                    readonly
+                    class="w-full p-2 rounded bg-transparent border-gray-700 border text-center text-gray-300"
+                  />
+                  <!-- Якщо результат "ЗНИЩЕНО" — фіксований напис "ЗНИЩЕНО" -->
+                  <input
+                    v-else-if="formData.result === 'ЗНИЩЕНО'"
+                    type="text"
+                    value="ЗНИЩЕНО"
+                    readonly
+                    class="w-full p-2 rounded bg-transparent border-gray-700 border text-center text-gray-300"
+                  />
+                  <!-- Інші випадки: можна вибрати дію вручну -->
+                  <select
+                    v-else
+                    v-model="formData.action"
+                    :class="['w-full p-2 rounded bg-[#454353]', formData.action ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Оберіть дію</option>
+                    <option v-for="action in actions" :key="action" :value="action">{{ action }}</option>
+                  </select>
+                </div>
+
+                <!-- Кількість цілей -->
+                <div class="w-1/3">
+                  <select
+                    v-model="formData.targetCount"
+                    :class="['w-full p-2 rounded bg-[#454353]', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Кількість</option>
+                    <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+
+                <!-- Клас цілі (БПЛА/КР) + тип БПЛА -->
+                <div class="w-1/3 flex flex-col gap-2">
+                  <select
+                    v-model="formData.targetClass"
+                    :class="['w-full p-2 rounded bg-[#454353]', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Клас</option>
+                    <option value="БПЛА">БПЛА</option>
+                    <option value="КР">КР</option>
+                  </select>
+                  <select
+                    v-if="formData.targetClass === 'БПЛА'"
+                    v-model="formData.type"
+                    :class="['w-full p-2 rounded bg-[#454353]', formData.type ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Тип БПЛА</option>
+                    <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ОПИС, якщо "не застосовувалась" -->
+          <div v-if="formData.result === 'не застосовувалась'" class="my-4 space-y-2">
+            <label>Опис:</label>
+            <div class="flex flex-col items-center gap-2">
+              <!-- А, Д, К -->
+              <div class="flex flex-row items-center gap-2 w-full">
+                <span class="w-auto">А-</span>
+                <input
+                  type="text"
+                  v-model="formData.angle"
+                  v-mask="'###'"
+                  placeholder="360"
+                  maxlength="3"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  @input="onAngleInput"
+                />
+                <span class="w-auto">Д-</span>
+                <input
+                  type="text"
+                  v-model="formData.distance"
+                  v-mask="'#####'"
+                  inputmode="numeric"
+                  pattern="\d*"
+                  placeholder="00000"
+                  maxlength="5"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                />
+                <span class="w-auto">К-</span>
+                <input
+                  type="text"
+                  v-model="formData.krok"
+                  v-mask="'###'"
+                  placeholder="360"
+                  maxlength="3"
+                  class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  @input="onKrokInput"
+                />
+              </div>
+
+              <!-- Режим виявлення, кількість, клас, тип БПЛА -->
+              <div class="flex flex-row gap-2 w-full">
+                <select
+                  v-model="formData.detectionMode"
+                  :class="['w-full p-2 rounded bg-[#454353]', formData.detectionMode ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Виявлено</option>
+                  <option value="акустично">акустично</option>
+                  <option value="візуально">візуально</option>
+                </select>
+                <select
+                  v-model="formData.targetCount"
+                  :class="['w-full p-2 rounded bg-[#454353]', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Кільк.</option>
+                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                </select>
+                <select
+                  v-model="formData.targetClass"
+                  :class="['w-full p-2 rounded bg-[#454353]', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Клас</option>
+                  <option value="БПЛА">БПЛА</option>
+                  <option value="КР">КР</option>
+                </select>
+              </div>
+
+              <!-- Тип БПЛА (якщо клас = БПЛА) -->
+              <select
+                v-if="formData.targetClass === 'БПЛА'"
+                v-model="formData.type"
+                :class="['w-full p-2 rounded bg-[#454353]', formData.type ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Тип БПЛА</option>
+                <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- БЛОК: КОМЕНТАР -->
+          <div class="my-4">
+            <label for="comment" class="mb-1 text-left">Коментар:</label>
+            <!-- Довільний текст. Якщо порожній, у звіті буде "-" -->
+            <textarea
+              id="comment"
+              v-model="formData.comment"
+              rows="3"
+              class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              placeholder="Додаткові відомості..."
+            ></textarea>
+          </div>
+
+          <!-- ОСОБОВИЙ СКЛАД -->
+          <div class="my-4">
+            <label>Особовий склад:</label>
+            <div class="rounded-xl mt-2">
+              <div class="flex flex-col gap-2">
+                <!-- Один військовослужбовець -->
+                <div
+                  v-for="(person, index) in formData.personnel"
+                  :key="index"
+                  class="flex flex-col gap-2 items-center"
+                >
+                  <select
+                    v-model="person.rank"
+                    :class="['w-full p-2 rounded bg-[#454353]', person.rank ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Звання</option>
+                    <option v-for="rank in ranks" :key="rank" :value="rank">{{ rank }}</option>
+                  </select>
+                  <input
+                    type="text"
+                    v-model="person.pib"
+                    placeholder="Залужний В.Ф."
+                    class="w-full p-2 rounded bg-[#454353] text-gray-900"
+                  />
+                  <button
+                    type="button"
+                    class="bg-red-700 hover:bg-red-800 text-white rounded px-3 py-2"
+                    @click="removePersonnel(index)"
+                  >
+                    Видалити
+                  </button>
+                </div>
+
+                <!-- Кнопка додати ще одного -->
+                <button
+                  type="button"
+                  @click="addPersonnel"
+                  class="bg-blue-800 hover:bg-blue-900 text-white rounded px-3 py-2 mt-2"
+                >
+                  Додати особовий склад
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- КНОПКИ: СКОПІЮВАТИ / ОЧИСТИТИ -->
+          <div class="flex flex-col items-start gap-2 mt-4">
+            <!-- Копіює сформований текст у буфер обміну -->
+            <button
+              type="button"
+              @click="copyData"
+              :class="['rounded px-3 py-4 w-full text-white transition-colors duration-300', copySuccess ? 'bg-green-500' : 'bg-green-700 hover:bg-green-800']"
+            >
+              {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
+            </button>
+
+            <!-- Очищає всі поля форми і LocalStorage -->
+            <button
+              type="button"
+              @click="clearForm"
+              class="bg-transparent border border-gray-700 hover:bg-gray-800 text-white rounded px-3 py-2 w-auto"
+            >
+              Очистити форму
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ЛОГІКА VUE -->
+  <script>
+    // Підключаємо плагін масок
+    Vue.use(VueTheMask);
+
+    new Vue({
+      el: '#app',
+
+      data: {
+        copySuccess: false,
+        hexTokens: { 
+          A: { pattern: /[а-яА-ЯІіЇїЄєҐґ0-9 \-]/, transform: v => v.toUpperCase() }, 
+          B: { pattern: /[а-яА-ЯІіЇїЄєҐґ ]/, transform: v => v.toUpperCase() }
+        },
+
+        formData: {
+          pidrozdil: '',
+          pozivniyPrefix: '',
+          pozivniy: '',
+          naseleniyPunkt: '',
+          oblast: '',
+          date: '',
+          time: '',
+          weapons: [{ name: '' }],
+          targetNumber: '',
+          height: '',
+          result: '',
+          angle: '',
+          krok: '',
+          distance: '',
+          action: '',
+          targetCount: '',
+          targetClass: '',
+          type: '',
+          detectionMode: '',
+          rozxid: [{ type: '', quantity: null }],
+          personnel: [{ rank: '', pib: '' }],
+          explosionCount: '',
+          explosionPlace: '',
+          explosionStatus: '',
+          comment: ''
+        },
+
+        units: [
+          'ПвК Центр',
+          '138 ртбр',
+          '164 ртбр',
+          '39 зрп',
+          '156 зрп',
+          '223 зрп',
+          '225 зрп',
+          '1129 зрп',
+          '14 зрбр',
+          '96 зрбр',
+          '201 зрбр',
+          '302 зрбр',
+          '540 зрбр',
+          '1020 зрап',
+          '1025 зрап',
+          '1027 зрап',
+          '1121 зрап',
+          '1021 зап',
+          '25 брТрА',
+          '39 брта',
+          '40 брта',
+          '114 брта',
+          '831 брта',
+          '21 ак',
+          '110 ак',
+          '121 ак',
+          '31 опз та ртз',
+          '1163 бо',
+          'НГУ',
+          '1 брОП НГУ',
+          '2 обр НГУ',
+          '4 бр НГУ',
+          '16 оабр НГУ',
+          '19 об НГУ',
+          '21 обр НГУ',
+          '22 обр НГУ',
+          '27 обр НГУ',
+          '28 п НГУ',
+          '31 п НГУ',
+          '36 п НГУ',
+          '37 п НГУ',
+          '38 п НГУ',
+          '40 п НГУ',
+          '45 п НГУ',
+          '13 озкб',
+          '630 озкб',
+          '631 озкб',
+          '635 озкб',
+          '637 озкб',
+          '638 озкб',
+          '642 озкб',
+          '643 озкб',
+          '644 озкб',
+          '645 озкб',
+          '646 озкб',
+          '650 озкб',
+          '1 обр ТРО',
+          '102 обр ТРО',
+          '103 обр ТРО',
+          '104 обр ТРО',
+          '105 обр ТРО',
+          '106 обр ТРО',
+          '112 обр ТРО',
+          '114 обр ТРО',
+          '115 обр ТРО',
+          '116 обр ТРО',
+          '117 обр ТРО',
+          '118 обр ТРО',
+          '119 обр ТРО',
+          '120 обр ТРО',
+          '121 обр ТРО',
+          '127 обр ТРО',
+          '168 обр ТРО',
+          'ДФТГ',
+          '3 ПрикЗ',
+          '9 ПрикЗ',
+          '105 ПрикЗ',
+          'ДПСУ',
+          'НПУ',
+          'ГУР',
+          'ОПБр',
+          '101 обро ГШ',
+          '125 овмбр',
+          '172 брез',
+          '178 брез',
+          '72 омбр',
+          '210 ОШП',
+          '104 ОАБ',
+          '3 Арс АЗУ',
+          '12 Арс ІБ',
+          '48 Арс',
+          '62 Арс Озб',
+          '303 Арс',
+          '332 Арс РОБ',
+          '434 Арс',
+          '90 АББ',
+          '222 АББ',
+          '1322 АББ',
+          '6 АСБ',
+          '229 ОЦЗ',
+          '433 ОЦЗ ЗУ ОВТ',
+          '2183 ОЦЗ П',
+          '2320 ОЦЗ ВТМ',
+          '3343 ОЦЗ ВТМ',
+          '230 ОБЗ',
+          '232 ОБЗ',
+          '94 ЦЗП',
+          '3097 ЦЗП',
+          '17 БАТЗ',
+          '20 ОЦЛЗ',
+          '169 ПРТБ',
+          '1827 ЦАБО',
+          '2572 ОЦР ОВТ',
+        ],
+
+        prefixes: ['МВГ', 'ВГ'],
+
+        regions: [
+          'Вінницька', 'Житомирська', 'Кіровоградська',
+          'Київська', 'Одеська', 'Полтавська',
+          'Сумська', 'Черкаська', 'Чернігівська'
+        ],
+
+        weapons: [
+          'зі стрілецької зброї 5.45/5.56',
+          'зі стрілецької зброї 7.62',
+          'із ВКК Browning M2 12.7',
+          'із ВКК Canik M2 12.7',
+          'із ВКК SAR 127 MT 12.7',
+          'із НСВ Утьос 12.7',
+          'із ВКК ДШК 12.7',
+          'із ВКК КПВТ 14.5',
+          'із ЗКУ Viktor MR-2 14.5',
+          'із ЗКУ-1(2) 14.5',
+          'із АЗГ М-75 20мм.',
+          'із ЗУ М-55 20мм',
+          'із ЗУ 23-2 23мм',
+          'із ЗУ 23-4 Рокач (Шилка) 23мм',
+          'із ЗУ VZ-53/59 Praga 30мм',
+          'із гармати HP 30мм',
+          'із АЗГ L-70 Bofors 40мм.',
+          'із АЗГ С-60 57мм',
+          'із ЗСАУ Cheetah 35мм',
+          'із ЗСУ 1А2 Gepard 35мм',
+          'із ЗСАУ 2С6 Тунгуска',
+          'із ПЗРК RBS-70',
+          'із ПЗРК Ігла (Ігла - 1)',
+          'із ПЗРК Stinger',
+          'із ПЗРК FN-6',
+          'із ПЗРК Piorun',
+          'із ПЗРК Стріла-3',
+          'із МОПУ Джигіт',
+          'із ЗРК STASH',
+          'із ЗРК DASH',
+          'із ЗРК Raven',
+          'із ЗРК Avanger',
+          'із ЗРК Оса АКМ',
+          'із ЗРК CA-95',
+          'із ЗРК ITEL-1,5'
+       ],
+
+        ammoTypes: [
+          'Розхід ЗКР', 
+          'Розхід НБЖ',
+          'Снаряд 57х348 мм (АЗГ С-60)',
+          'Снаряд 40х365 мм (L-70 Bofors)',
+          'Снаряд 35х228 мм (Gepard)',
+          'Снаряд 30х210 мм (VZ-53/59 Praga)',
+          'Снаряд 30х155 мм (HP-30)',
+          'Набій 23х152 мм (ЗУ-23-4) АРІ',
+          'Набій 23х152 мм (ЗУ-23-2) ОФЗ',
+          'Набій 23х152 мм (ЗУ-23-2) БЗТ',
+          'Набій 23х152 мм (ЗУ-23-2) ОФЗТ',
+          'Набій 20х110 мм (АЗГ М-75, M55) БЗТ',
+          'Набій 20х110 мм (АЗГ М-75, M55) ТЗ',
+          'Набій 20х110 мм (АЗГ М-75, M55) ТЗО',
+          'Набій 14,5х114 мм (ЗПУ, КПВТ) Б-32',
+          'Набій 14,5х114 мм (ЗПУ, КПВТ) БЗТ', 
+          'Набій 14,5х114 мм (ЗПУ, КПВТ) МДЗ',
+          'Набій 12,7х108 мм (ДШК, НСВ, Корд, W85) МДЗ',
+          'Набій 12,7х108 мм (ДШК, НСВ, Корд, W85) БЗТ', 
+          'Набій 12,7х108 мм (ДШК, НСВ, Корд, W85) Б-32',
+          'Набій 12,7х108 мм (ДШК, НСВ, Корд, W85) 1СЛ',
+          'Набій 12,7х108 мм FMJ',
+          'Набій 12,7х99 мм (Canik, Browning)',
+          'Набій 7,62х54 мм (ПКМ, КМ-7,62, СВД) ЛПС', 
+          'Набій 7,62х54 мм (ПКМ, КМ-7,62, СВД) Т-46',
+          'Набій 7,62х54 мм (ПКМ, КМ-7,62, СВД) Б-32',
+          'Набій 7,62х54 мм (ПКМ, КМ-7,62, СВД) ПЗ',
+          'Набій 7,62х54 мм FMJ',
+          'Набій 7,62х51 мм (CZ TSR, MG3, MG42, FN MAG) М-80, М-62',
+          'Набій 7,62х39 мм (РКК, РКД, АКМ) ПС', 
+          'Набій 7,62х39 мм (РКК, РКД, АКМ) Т-45',
+          'Набій 5,56х45 мм (FNC) SS109', 
+          'Набій 5,45х39 мм ПС', 
+          'Набій 5,45х39 мм Т'
+        ],
+
+        results: ['не застосовувалась', 'не знищено', 'ЗНИЩЕНО', 'вибух'],
+
+        actions: ['обстріляно', 'знищено'],
+
+        uavTypes: ['Shahed', 'Shahed (реактивний)','Гербера', 'Пародія', 'Невідомий'],
+
+        ranks: ['солд.', 'ст. солд.', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
+      },
+
+      computed: {
+        showRozxid() {
+          return this.formData.result !== 'не застосовувалась' && this.formData.result !== 'вибух';
+        }
+      },
+
+      created() {
+        // Відновлюємо лише постійні поля
+        const saved = localStorage.getItem('staticFormData');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            const staticKeys = ['pidrozdil', 'pozivniyPrefix', 'pozivniy', 'naseleniyPunkt', 'oblast', 'weapons', 'personnel'];
+            staticKeys.forEach(key => {
+              if (parsed[key] !== undefined) {
+                this.formData[key] = parsed[key];
+              }
+            });
+            // Сумісність зі старим форматом (weapons як рядок)
+            if (!Array.isArray(this.formData.weapons)) {
+              const oldWeapon = this.formData.zbroya || '';
+              this.formData.weapons = [{ name: oldWeapon }];
+            }
+          } catch (e) {
+            console.warn('Не вдалося відновити дані з localStorage:', e);
+          }
+        }
+      },
+
+      watch: {
+        // Зберігаємо лише постійні поля при будь-якій зміні
+        'formData.pidrozdil'(v)       { this._saveStatic(); },
+        'formData.pozivniyPrefix'(v)  { this._saveStatic(); },
+        'formData.pozivniy'(v)        { this._saveStatic(); },
+        'formData.naseleniyPunkt'(v)  { this._saveStatic(); },
+        'formData.oblast'(v)          { this._saveStatic(); },
+        'formData.weapons': {
+          handler() { this._saveStatic(); },
+          deep: true
+        },
+        'formData.personnel': {
+          handler() { this._saveStatic(); },
+          deep: true
+        },
+        'formData.targetClass'(newVal) {
+          if (newVal === 'КР') {
+            this.formData.type = '';
+          } else if (!this.formData.type) {
+            this.formData.type = this.uavTypes[0];
+          }
+        },
+
+        'formData.result'(newVal) {
+          if (newVal === 'вибух') {
+            this.formData.height = '';
+            this.formData.krok = '';
+          }
+        }
+      },
+
+      methods: {
+        _saveStatic() {
+          const staticData = {
+            pidrozdil:      this.formData.pidrozdil,
+            pozivniyPrefix: this.formData.pozivniyPrefix,
+            pozivniy:       this.formData.pozivniy,
+            naseleniyPunkt: this.formData.naseleniyPunkt,
+            oblast:         this.formData.oblast,
+            weapons:        this.formData.weapons,
+            personnel:      this.formData.personnel,
+          };
+          localStorage.setItem('staticFormData', JSON.stringify(staticData));
+        },
+
+        addRozxid() {
+          this.formData.rozxid.push({ type: '', quantity: null });
+        },
+
+        removeRozxid(index) {
+          this.formData.rozxid.splice(index, 1);
+        },
+
+        addPersonnel() {
+          this.formData.personnel.push({ rank: '', pib: '' });
+        },
+
+        removePersonnel(index) {
+          if (this.formData.personnel.length > 1) {
+            this.formData.personnel.splice(index, 1);
+          }
+        },
+
+        addWeapon() {
+          this.formData.weapons.push({ name: '' });
+        },
+
+        removeWeapon(index) {
+          if (this.formData.weapons.length > 1) {
+            this.formData.weapons.splice(index, 1);
+          }
+        },
+
+        clearForm() {
+          this.formData = {
+            pidrozdil: '',
+            pozivniyPrefix: '',
+            pozivniy: '',
+            naseleniyPunkt: '',
+            oblast: '',
+            weapons: [{ name: '' }],
+            personnel: [{ rank: '', pib: '' }],
+            date: '',
+            time: '',
+            targetNumber: '',
+            height: '',
+            result: '',
+            angle: '',
+            krok: '',
+            distance: '',
+            action: '',
+            targetCount: '',
+            targetClass: '',
+            type: '',
+            detectionMode: '',
+            rozxid: [{ type: '', quantity: null }],
+            explosionCount: '',
+            explosionPlace: '',
+            explosionStatus: '',
+            comment: ''
+          };
+          localStorage.removeItem('staticFormData');
+        },
+
+        copyData() {
+          // Локальні змінні для відображення — не змінюємо formData
+          const angle    = this.formData.angle    || '0';
+          const distance = this.formData.distance || '0';
+          const krok     = this.formData.krok     || '0';
+          let   height   = this.formData.height   || '0';
+          const targetNumberRaw = this.formData.targetNumber || '0000';
+
+          if (this.formData.result === 'вибух' && this.formData.explosionPlace === 'на землі') {
+            height = '0';
+          }
+
+          const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const [yyyy, mm, dd] = parts;
+            return `${dd}.${mm}.${yyyy}`;
+          };
+
+          const formattedDate = formatDate(this.formData.date);
+
+          let targetNumberDisplay = targetNumberRaw;
+          if (!targetNumberDisplay || /^0+$/.test(targetNumberDisplay)) {
+            targetNumberDisplay = 'б/н';
+          }
+
+          let resultText = this.formData.result || '';
+          let oblastShort = this.formData.oblast || '';
+
+          const weaponsSelected = (this.formData.weapons || [])
+            .map(w => w && w.name ? w.name : '')
+            .filter(Boolean);
+          const weaponsLine = weaponsSelected.join(', ');
+
+          const ammoSummary = (items) => {
+            const regexNabiy = /^(Набій|Снаряд)\s(.+)$/;
+            const grouped = {};
+            let zkr = 0;
+            let nbzh = 0;
+
+            items.forEach(item => {
+              const line = item.type;
+              const qty = parseInt(item.quantity, 10);
+              if (!line || isNaN(qty)) return;
+
+              if (line.startsWith('Розхід ЗКР')) {
+                zkr += qty;
+              } else if (line.startsWith('Розхід НБЖ')) {
+                nbzh += qty;
+              } else {
+                const match = line.match(regexNabiy);
+                if (match) {
+                  const kind = match[1];
+                  const name = match[2];
+                  const key = `${kind} ${name}`;
+                  if (!grouped[key]) grouped[key] = 0;
+                  grouped[key] += qty;
+                }
+              }
+            });
+
+            const lines = [];
+            Object.entries(grouped).forEach(([key, qty]) => {
+              lines.push(`${key} - ${qty}`);
+            });
+            if (zkr > 0) lines.push(`Розхід ЗКР - ${zkr}`);
+            if (nbzh > 0) lines.push(`Розхід НБЖ - ${nbzh}`);
+            return lines;
+          };
+
+          let text = `Дата: ${formattedDate}
+Час: ${this.formData.time || ''}
+№ цілі: ${targetNumberDisplay}
+Результат: ${resultText}
+Н.П.: ${this.formData.naseleniyPunkt}
+Обл.: ${oblastShort}
+Підрозділ: ${this.formData.pidrozdil}
+Позивний: ${this.formData.pozivniyPrefix} ${this.formData.pozivniy}
+Зброя: ${weaponsLine}
+Висота: ${height}`;
+
+          if (this.formData.result === 'вибух') {
+            const vibukhWord = Number(this.formData.explosionCount) > 1 ? 'вибухи' : 'вибух';
+            text += `\nОпис: А-${angle}, Д-${distance} ${vibukhWord} ${this.formData.explosionCount} ${this.formData.explosionPlace} ${this.formData.explosionStatus}`;
+          } else if (this.formData.result === 'не застосовувалась') {
+            text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
+            if (this.formData.detectionMode) text += `, ${this.formData.detectionMode}`;
+            if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
+            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
+            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
+              text += ` ${this.formData.type}`;
+            }
+          } else {
+            text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
+            if (this.formData.result === 'не знищено') {
+              text += `, обстріляно`;
+            } else if (this.formData.result === 'ЗНИЩЕНО') {
+              text += `, ЗНИЩЕНО`;
+            } else if (this.formData.action) {
+              text += `, ${this.formData.action}`;
+            }
+            if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
+            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
+            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
+              text += ` ${this.formData.type}`;
+            }
+          }
+
+          const personnel = this.formData.personnel
+            .filter(p => p.rank && p.pib)
+            .map(p => `${p.rank} ${p.pib}`)
+            .join(', ');
+          if (personnel) text += `, ${personnel}`;
+
+          const commentText = this.formData.comment && this.formData.comment.trim()
+            ? this.formData.comment.trim()
+            : '-';
+          text += `\nКоментар: ${commentText}`;
+
+          if (this.showRozxid) {
+            const ammoLines = ammoSummary(this.formData.rozxid);
+            ammoLines.forEach(line => {
+              text += `\n${line}`;
+            });
+          }
+
+          text = text
+            .split('\n')
+            .map(line => line.trimStart())
+            .join('\n');
+
+          navigator.clipboard.writeText(text).then(() => {
+            this.copySuccess = true;
+            setTimeout(() => { this.copySuccess = false; }, 2000);
+          });
+        },
+
+        onAngleInput(e) {
+          let val = Number(e.target.value);
+          if (val > 360) val = 360;
+          if (val < 0) val = 0;
+          this.formData.angle = val ? String(val) : '';
+        },
+
+        onKrokInput(e) {
+          let val = Number(e.target.value);
+          if (val > 360) val = 360;
+          if (val < 0) val = 0;
+          this.formData.krok = val ? String(val) : '';
+        }
+      }
+    });
+  </script>
 </body>
 </html>
-
-
+<!-- created by Yaroslav (Ringleader7) -->
