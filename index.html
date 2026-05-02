@@ -663,13 +663,23 @@
                     placeholder="Залужний В.Ф."
                     class="w-full p-2 rounded rounded"
                   />
-                  <button
-                    type="button"
-                    class="hover:opacity-90 text-white rounded px-3 py-2" style="background:var(--danger)"
-                    @click="removePersonnel(index)"
-                  >
-                    Видалити
-                  </button>
+                  <div class="flex w-full items-center justify-between gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer select-none" style="min-height:44px">
+                      <input
+                        type="checkbox"
+                        v-model="person.onBch"
+                        style="width:22px;height:22px;accent-color:var(--accent);cursor:pointer"
+                      />
+                      <span style="color:var(--text);font-weight:600">на БЧ</span>
+                    </label>
+                    <button
+                      type="button"
+                      class="hover:opacity-90 text-white rounded px-3 py-2" style="background:var(--danger)"
+                      @click="removePersonnel(index)"
+                    >
+                      Видалити
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Кнопка додати ще одного -->
@@ -750,7 +760,7 @@
           viktorAmmo2: '',
           viktorAmmo3: '',
           ak74Ammo: '',
-          personnel: [{ rank: '', pib: '' }],
+          personnel: [{ rank: '', pib: '', onBch: false }],
           explosionCount: '',
           explosionPlace: '',
           explosionStatus: '',
@@ -1100,7 +1110,7 @@
         },
 
         addPersonnel() {
-          this.formData.personnel.push({ rank: '', pib: '' });
+          this.formData.personnel.push({ rank: '', pib: '', onBch: false });
         },
 
         removePersonnel(index) {
@@ -1131,7 +1141,7 @@
             naseleniyPunkt: '',
             oblast: '',
             weapons: [{ name: '' }],
-            personnel: [{ rank: '', pib: '' }],
+            personnel: [{ rank: '', pib: '', onBch: false }],
             date: _utcDate,
             time: _utcTime,
             datetime: this._buildDatetime(_utcDate, _utcTime),
@@ -1271,7 +1281,7 @@
           }
 
           const personnel = this.formData.personnel
-            .filter(p => p.rank && p.pib)
+            .filter(p => p.rank && p.pib && p.onBch)
             .map(p => `${p.rank} ${p.pib}`)
             .join(', ');
           if (personnel) text += `, ${personnel}`;
