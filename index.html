@@ -98,24 +98,22 @@
             </div>
           </div>
 
-          <!-- ДАТА -->
+          <!-- ДАТА І ЧАС -->
           <div class="flex flex-col mb-2">
-            <label for="date" class="mb-1 text-left">Дата:</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-left">Час виявлення цілі:</label>
+              <div class="flex gap-1">
+                <button type="button" @click="adjustTime(-1)"
+                  class="bg-cyan-500 hover:bg-cyan-600 text-white text-sm rounded px-2 py-1">-1 хв.</button>
+                <button type="button" @click="adjustTime(1)"
+                  class="bg-cyan-500 hover:bg-cyan-600 text-white text-sm rounded px-2 py-1">+1 хв.</button>
+              </div>
+            </div>
             <input
-              id="date"
-              type="date"
-              v-model="formData.date"
-              class="w-full p-2 rounded bg-[#454353] text-gray-900"
-            />
-          </div>
-
-          <!-- ЧАС -->
-          <div class="flex flex-col mb-2">
-            <label for="time" class="mb-1 text-left">Час:</label>
-            <input
-              id="time"
-              type="time"
-              v-model="formData.time"
+              type="text"
+              v-model="formData.datetime"
+              @change="parseDatetime"
+              placeholder="дд.мм.рррр гг:хх"
               class="w-full p-2 rounded bg-[#454353] text-gray-900"
             />
           </div>
@@ -243,6 +241,38 @@
               >
                 Додати розхід
               </button>
+            </div>
+          </div>
+
+          <!-- VIKTOR MR-2 БЛОК РОЗХОДУ (замість стандартного Розхід) -->
+          <div v-if="showViktorAmmo" class="flex flex-col gap-3 mb-2">
+            <div class="mb-1">Розхід БК ЗУ MR2 VIKTOR 14,5мм:</div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-3МДЗ</label>
+              <input
+                type="tel"
+                v-model="formData.viktorAmmo1"
+                placeholder="Кількість"
+                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-2МДЗ</label>
+              <input
+                type="tel"
+                v-model="formData.viktorAmmo2"
+                placeholder="Кількість"
+                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-gray-300">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-1Б32-2МДЗ</label>
+              <input
+                type="tel"
+                v-model="formData.viktorAmmo3"
+                placeholder="Кількість"
+                class="w-full p-2 rounded bg-[#454353] text-gray-900"
+              />
             </div>
           </div>
 
@@ -606,6 +636,7 @@
           oblast: '',
           date: '',
           time: '',
+          datetime: '',
           weapons: [{ name: '' }],
           targetNumber: '',
           height: '',
@@ -619,6 +650,9 @@
           type: '',
           detectionMode: '',
           rozxid: [{ type: '', quantity: null }],
+          viktorAmmo1: '',
+          viktorAmmo2: '',
+          viktorAmmo3: '',
           personnel: [{ rank: '', pib: '' }],
           explosionCount: '',
           explosionPlace: '',
@@ -835,12 +869,28 @@
       },
 
       computed: {
+        isViktor() {
+          const viktorName = 'із ЗКУ Viktor MR-2 14.5';
+          return this.formData.weapons.some(w => w.name === viktorName);
+        },
+        showViktorAmmo() {
+          return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
+        },
         showRozxid() {
-          return this.formData.result !== 'не застосовувалась' && this.formData.result !== 'вибух';
+          return !this.showViktorAmmo &&
+            this.formData.result !== 'не застосовувалась' &&
+            this.formData.result !== 'вибух';
         }
       },
 
       created() {
+        // Автопідстановка UTC дати і часу
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        this.formData.date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        this.formData.time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        this.formData.datetime = this._buildDatetime(this.formData.date, this.formData.time);
+
         // Відновлюємо лише постійні поля
         const saved = localStorage.getItem('staticFormData');
         if (saved) {
@@ -895,6 +945,36 @@
       },
 
       methods: {
+        // Будує рядок "дд.мм.рррр гг:хх" з внутрішніх полів date/time
+        _buildDatetime(dateStr, timeStr) {
+          if (!dateStr) return '';
+          const [yyyy, mm, dd] = dateStr.split('-');
+          return `${dd}.${mm}.${yyyy} ${timeStr || '00:00'}`;
+        },
+
+        // Розбирає рядок "дд.мм.рррр гг:хх" назад у date/time
+        parseDatetime() {
+          const val = (this.formData.datetime || '').trim();
+          const m = val.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/);
+          if (m) {
+            this.formData.date = `${m[3]}-${m[2]}-${m[1]}`;
+            this.formData.time = `${m[4]}:${m[5]}`;
+          }
+        },
+
+        // Зміщує час на ±delta хвилин
+        adjustTime(delta) {
+          this.parseDatetime();
+          const [yyyy, mm, dd] = (this.formData.date || '').split('-').map(Number);
+          const [hh, min] = (this.formData.time || '00:00').split(':').map(Number);
+          if (!yyyy) return;
+          const d = new Date(yyyy, mm - 1, dd, hh, min + delta);
+          const pad = n => String(n).padStart(2, '0');
+          this.formData.date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+          this.formData.time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          this.formData.datetime = this._buildDatetime(this.formData.date, this.formData.time);
+        },
+
         _saveStatic() {
           const staticData = {
             pidrozdil:      this.formData.pidrozdil,
@@ -937,6 +1017,10 @@
         },
 
         clearForm() {
+          const _now = new Date();
+          const _pad = n => String(n).padStart(2, '0');
+          const _utcDate = `${_now.getFullYear()}-${_pad(_now.getMonth() + 1)}-${_pad(_now.getDate())}`;
+          const _utcTime = `${_pad(_now.getHours())}:${_pad(_now.getMinutes())}`;
           this.formData = {
             pidrozdil: '',
             pozivniyPrefix: '',
@@ -945,8 +1029,9 @@
             oblast: '',
             weapons: [{ name: '' }],
             personnel: [{ rank: '', pib: '' }],
-            date: '',
-            time: '',
+            date: _utcDate,
+            time: _utcTime,
+            datetime: this._buildDatetime(_utcDate, _utcTime),
             targetNumber: '',
             height: '',
             result: '',
@@ -959,6 +1044,9 @@
             type: '',
             detectionMode: '',
             rozxid: [{ type: '', quantity: null }],
+            viktorAmmo1: '',
+            viktorAmmo2: '',
+            viktorAmmo3: '',
             explosionCount: '',
             explosionPlace: '',
             explosionStatus: '',
@@ -968,6 +1056,8 @@
         },
 
         copyData() {
+          // Синхронізуємо datetime -> date/time перед копіюванням
+          this.parseDatetime();
           // Локальні змінні для відображення — не змінюємо formData
           const angle    = this.formData.angle    || '0';
           const distance = this.formData.distance || '0';
@@ -1092,6 +1182,41 @@
             ammoLines.forEach(line => {
               text += `\n${line}`;
             });
+          }
+
+          // Viktor MR-2 розрахунок БК
+          if (this.showViktorAmmo) {
+            let total = 0, bzt = 0, mdz = 0, b32 = 0;
+
+            const a1 = Number(this.formData.viktorAmmo1);
+            if (a1 > 0) {
+              total += a1;
+              const b = Math.round(a1 / 4);
+              bzt += b; mdz += a1 - b;
+            }
+
+            const a2 = Number(this.formData.viktorAmmo2);
+            if (a2 > 0) {
+              total += a2;
+              const b = Math.round(a2 / 3);
+              bzt += b; mdz += a2 - b;
+            }
+
+            const a3 = Number(this.formData.viktorAmmo3);
+            if (a3 > 0) {
+              total += a3;
+              const full = Math.floor(a3 / 4);
+              const rem = a3 % 4;
+              let b3 = full, b32_3 = full, m3 = full * 2;
+              if (rem >= 1) b3 += 1;
+              if (rem >= 2) b32_3 += 1;
+              if (rem === 3) m3 += 1;
+              bzt += b3; b32 += b32_3; mdz += m3;
+            }
+
+            if (total > 0) {
+              text += `\nВитрати БК ЗУ MR2 VIKTOR 14,5мм=${total}шт. (в т.ч. БЗТ-${bzt}шт., МДЗ-${mdz}шт., Б32-${b32}шт.)`;
+            }
           }
 
           text = text
