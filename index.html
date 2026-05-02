@@ -1375,8 +1375,25 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/Ltava/sw.js', { scope: '/Ltava/' })
-          .then(r => console.log('SW:', r.scope))
+          .then(reg => {
+            // Одразу перевіряємо оновлення
+            reg.update();
+            // Якщо знайдено новий SW — перезавантажуємо сторінку автоматично
+            reg.addEventListener('updatefound', () => {
+              const newSW = reg.installing;
+              newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'activated') {
+                  window.location.reload();
+                }
+              });
+            });
+          })
           .catch(e => console.warn('SW помилка:', e));
+
+        // Якщо інша вкладка вже активувала новий SW — також оновлюємось
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
       });
     }
   </script>
