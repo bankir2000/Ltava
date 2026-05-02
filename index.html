@@ -145,6 +145,52 @@
       border-left: 4px solid #15803d !important;
     }
 
+    /* Бейдж помилки поряд з кнопкою */
+    .copy-error-badge {
+      background: #b91c1c;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      max-width: 160px;
+      line-height: 1.3;
+    }
+    body.dark .copy-error-badge {
+      background: #991b1b;
+    }
+
+    /* Анімація помилки на кнопці */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .btn-shake { animation: shake 0.4s ease; }
+
+    /* Помилка дати/часу */
+    .datetime-error {
+      border: 2px solid #b91c1c !important;
+      border-left: 4px solid #b91c1c !important;
+      background: #fef2f2 !important;
+    }
+    body.dark .datetime-error {
+      background: #2d1515 !important;
+    }
+    .datetime-error-msg {
+      color: #b91c1c;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+    body.dark .datetime-error-msg {
+      color: #f87171;
+    }
+
     /* Прогрес-смужка */
     .progress-bar-wrap {
       height: 5px;
@@ -367,10 +413,12 @@
               <input
                 type="text"
                 v-model="formData.datetime"
+                @input="datetimeError = ''"
                 @change="parseDatetime"
                 placeholder="дд.мм.рррр гг:хх"
-                :class="['w-full p-2 rounded', formData.datetime ? 'field-filled' : '']"
+                :class="['w-full p-2 rounded', datetimeError ? 'datetime-error' : (formData.datetime ? 'field-filled' : '')]"
               />
+              <div v-if="datetimeError" class="datetime-error-msg">{{ datetimeError }}</div>
             </div>
           </div>
 
@@ -844,22 +892,17 @@
                 : 'background:#0f172a;color:#f1f5f9'"
             >{{ darkMode ? '☀️ День' : '🌙 Ніч' }}</button>
             <!-- Копіює сформований текст у буфер обміну -->
-            <button
-              type="button"
-              @click="copyData"
-              :style="{background: copySuccess ? '#16a34a' : '#15803d', boxShadow: copySuccess ? 'none' : '0 3px 12px rgba(21,128,61,0.4)'}" class="btn-copy rounded w-full text-white transition-all hover:opacity-90"
-            >
-              {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
-            </button>
+            <div class="w-full flex items-center gap-2">
+              <button
+                type="button"
+                @click="copyData"
+                :style="{background: copySuccess ? '#16a34a' : '#15803d', boxShadow: copySuccess ? 'none' : '0 3px 12px rgba(21,128,61,0.4)'}" class="btn-copy rounded flex-1 text-white transition-all hover:opacity-90"
+              >
+                {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
+              </button>
+              <div v-if="datetimeError" class="copy-error-badge">⚠️ {{ datetimeError }}</div>
+            </div>
 
-            <!-- Очищає всі поля форми і LocalStorage -->
-            <button
-              type="button"
-              @click="clearForm"
-              class="border-2 hover:opacity-80 rounded px-3 py-2 w-auto" style="border-color:var(--border);background:transparent;color:var(--text)"
-            >
-              Очистити форму
-            </button>
           </div>
         </div>
       </form>
@@ -876,6 +919,7 @@
 
       data: {
         copySuccess: false,
+        datetimeError: '',
         darkMode: false,
         hexTokens: { 
           A: { pattern: /[а-яА-ЯІіЇїЄєҐґ0-9 \-]/, transform: v => v.toUpperCase() }, 
@@ -1233,11 +1277,31 @@
         // Розбирає рядок "дд.мм.рррр гг:хх" назад у date/time
         parseDatetime() {
           const val = (this.formData.datetime || '').trim();
+          if (!val) { this.datetimeError = ''; return; }
+
           const m = val.match(/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})$/);
-          if (m) {
-            this.formData.date = `${m[3]}-${m[2]}-${m[1]}`;
-            this.formData.time = `${m[4]}:${m[5]}`;
+          if (!m) {
+            this.datetimeError = 'Формат: дд.мм.рррр гг:хх';
+            return;
           }
+
+          const dd = +m[1], mm = +m[2], yyyy = +m[3], hh = +m[4], min = +m[5];
+
+          if (mm < 1 || mm > 12) { this.datetimeError = 'Місяць: 01–12'; return; }
+          if (dd < 1 || dd > 31) { this.datetimeError = 'День: 01–31'; return; }
+          if (hh > 23)           { this.datetimeError = 'Година: 00–23'; return; }
+          if (min > 59)          { this.datetimeError = 'Хвилини: 00–59'; return; }
+
+          // Перевірка реальної дати (лютий, місяці з 30 днів тощо)
+          const date = new Date(yyyy, mm - 1, dd);
+          if (date.getFullYear() !== yyyy || date.getMonth() !== mm - 1 || date.getDate() !== dd) {
+            this.datetimeError = `Дата ${dd}.${m[2]}.${yyyy} не існує`;
+            return;
+          }
+
+          this.datetimeError = '';
+          this.formData.date = `${yyyy}-${m[2]}-${m[1]}`;
+          this.formData.time = `${m[4]}:${m[5]}`;
         },
 
         // Зміщує час на ±delta хвилин
@@ -1361,6 +1425,17 @@
         copyData() {
           // Синхронізуємо datetime -> date/time перед копіюванням
           this.parseDatetime();
+          if (this.datetimeError) {
+            // Трясти кнопку і підсвітити поле
+            this.$el.querySelector('.btn-copy').classList.remove('btn-shake');
+            void this.$el.querySelector('.btn-copy').offsetWidth; // reflow
+            this.$el.querySelector('.btn-copy').classList.add('btn-shake');
+            setTimeout(() => {
+              const btn = this.$el.querySelector('.btn-copy');
+              if (btn) btn.classList.remove('btn-shake');
+            }, 500);
+            return;
+          }
           // Локальні змінні для відображення — не змінюємо formData
           const angle    = this.formData.angle    || '0';
           const distance = this.formData.distance || '0';
