@@ -601,9 +601,81 @@
               >{{ result }}</button>
             </div>
 
-            <!-- ── Вибір виявлення: "не застосовувалась" ── -->
-            <div v-if="formData.result === 'не застосовувалась'" class="mt-3">
-              <label class="mb-2 block">Виявлено:</label>
+            <!-- ── "не застосовувалась": А-, К-, Д-, Кількість, Клас, Виявлено ── -->
+            <div v-if="formData.result === 'не застосовувалась'" class="mt-3 space-y-2">
+
+              <!-- А, К, Д -->
+              <div class="flex flex-row items-center gap-2 w-full">
+                <span class="adk-label w-auto">А-</span>
+                <input
+                  type="number"
+                  v-model="formData.angle"
+                  inputmode="numeric"
+                  placeholder="0"
+                  min="0"
+                  max="360"
+                  class="w-full p-2 rounded"
+                  @input="onAngleInput"
+                />
+                <span class="adk-label w-auto">К-</span>
+                <input
+                  type="number"
+                  v-model="formData.krok"
+                  inputmode="numeric"
+                  placeholder="0"
+                  min="0"
+                  max="360"
+                  class="w-full p-2 rounded"
+                  @input="onKrokInput"
+                />
+                <span class="adk-label w-auto">Д-</span>
+                <input
+                  type="number"
+                  v-model="formData.distance"
+                  inputmode="numeric"
+                  placeholder="0"
+                  min="0"
+                  class="w-full p-2 rounded"
+                />
+              </div>
+
+              <!-- Кількість і Клас -->
+              <div class="flex gap-2">
+                <select
+                  v-model="formData.targetCount"
+                  :class="['w-full p-2 rounded', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Кількість</option>
+                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                </select>
+                <select
+                  v-model="formData.targetClass"
+                  :class="['w-full p-2 rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Клас</option>
+                  <option value="БПЛА">БПЛА</option>
+                  <option value="Інше">Інше</option>
+                </select>
+              </div>
+              <select
+                v-if="formData.targetClass === 'БПЛА'"
+                v-model="formData.type"
+                :class="['w-full p-2 rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Тип БПЛА</option>
+                <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
+              </select>
+              <select
+                v-if="formData.targetClass === 'Інше'"
+                v-model="formData.type"
+                :class="['w-full p-2 rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Інше</option>
+                <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
+              </select>
+
+              <!-- Виявлено -->
+              <label class="mb-1 block">Виявлено:</label>
               <div class="grid grid-cols-1 gap-2">
                 <button
                   v-for="mode in detectionModes"
