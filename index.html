@@ -623,7 +623,7 @@
                   >
                     <option value="" disabled hidden>Клас</option>
                     <option value="БПЛА">БПЛА</option>
-                    <option value="КР">КР</option>
+                    <option value="Інше">Інше</option>
                   </select>
                   <select
                     v-if="formData.targetClass === 'БПЛА'"
@@ -632,6 +632,14 @@
                   >
                     <option value="" disabled hidden>Тип БПЛА</option>
                     <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
+                  </select>
+                  <select
+                    v-if="formData.targetClass === 'Інше'"
+                    v-model="formData.type"
+                    :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Інше</option>
+                    <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
                   </select>
                 </div>
               </div>
@@ -701,7 +709,7 @@
                 >
                   <option value="" disabled hidden>Клас</option>
                   <option value="БПЛА">БПЛА</option>
-                  <option value="КР">Інше</option>
+                  <option value="Інше">Інше</option>
                 </select>
               </div>
 
@@ -713,6 +721,14 @@
               >
                 <option value="" disabled hidden>Тип БПЛА</option>
                 <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
+              </select>
+              <select
+                v-if="formData.targetClass === 'Інше'"
+                v-model="formData.type"
+                :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
+              >
+                <option value="" disabled hidden>Інше</option>
+                <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
               </select>
             </div>
           </div>
@@ -1160,6 +1176,8 @@
 
         uavTypes: ['БпЛА типу Гербера', 'БпЛА типу Зала', 'БпЛА типу Молнія', 'БпЛА типу Невизначений', 'БпЛА типу Орлан', 'БпЛА типу реактивний Шахед', 'БпЛА типу Суперкам', 'БпЛА типу ШАХЕД', 'Квадрокоптер', 'FPV-дрон'],
 
+        uavTypes1: ['Вибух', 'Вибух на землі', 'Виходи', 'Гелікоптер', 'Зонд', 'Крилата Ракета', 'Літак Великий.', 'Літак Малий.', 'Постріли.', 'Робота суміжних підрозділів', 'Спалах в небі'],
+          
         ranks: ['солд.', 'ст. солд.', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
       },
 
