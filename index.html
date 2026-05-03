@@ -1265,7 +1265,7 @@
           deep: true
         },
         'formData.targetClass'(newVal) {
-          if (newVal === 'КР') {
+          if (newVal === 'Інше') {
             this.formData.type = '';
           } else if (!this.formData.type) {
             this.formData.type = this.uavTypes[0];
@@ -1538,9 +1538,10 @@
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
             if (this.formData.detectionMode) text += `, ${this.formData.detectionMode}`;
             if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
-            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
-            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
+            if (this.formData.type) {
               text += ` ${this.formData.type}`;
+            } else if (this.formData.targetClass) {
+              text += ` ${this.formData.targetClass}`;
             }
           } else {
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
@@ -1552,9 +1553,10 @@
               text += `, ${this.formData.action}`;
             }
             if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
-            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
-            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
+            if (this.formData.type) {
               text += ` ${this.formData.type}`;
+            } else if (this.formData.targetClass) {
+              text += ` ${this.formData.targetClass}`;
             }
           }
 
