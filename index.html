@@ -318,6 +318,41 @@
         padding: 17px !important;
       }
     }
+
+    /* ===== БЕЙДЖ ФІКСОВАНОЇ ДІЇ ===== */
+    .action-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-align: center;
+      color: #ffffff;
+      padding: 8px;
+      border: 3px solid transparent;
+    }
+    .action-badge--fired     { background:#92400e; border-color:#78350f; box-shadow:0 2px 8px rgba(146,64,14,.45); }
+    .action-badge--destroyed { background:#15803d; border-color:#14532d; box-shadow:0 2px 8px rgba(21,128,61,.45); }
+    .action-badge--explosion { background:#b91c1c; border-color:#991b1b; box-shadow:0 2px 8px rgba(185,28,28,.45); }
+
+    /* ===== КНОПКИ ВИБОРУ ДІЇ ===== */
+    .action-btn {
+      width:100%; min-height:44px; border-radius:8px;
+      font-size:14px; font-weight:700; color:#ffffff;
+      background:#475569; border:3px solid transparent;
+      opacity:0.75; cursor:pointer;
+      transition:opacity .15s, transform .15s, border-color .15s;
+    }
+    .action-btn:hover { opacity:.9; }
+    .action-btn--active {
+      background:#1e293b; border-color:#0f172a; opacity:1;
+      transform:scale(1.03); box-shadow:0 2px 8px rgba(0,0,0,.3);
+    }
+    body.dark .action-btn        { background:#334155; }
+    body.dark .action-btn--active{ background:#0f172a; }
   </style>
 </head>
 
@@ -465,71 +500,6 @@
               </div>
             </div>
 
-          <!-- ОПИС, якщо результат = "вибух" -->
-          <div v-if="formData.result === 'вибух'" class="my-4 space-y-2">
-            <label>Опис:</label>
-            <div class="flex flex-col gap-2">
-              <!-- Азимут/дальність -->
-              <div class="flex w-full flex-row items-center gap-2">
-                <span class="adk-label w-auto">А-</span>
-                <input
-                  type="number"
-                  v-model="formData.angle"
-                  inputmode="numeric"
-                  placeholder="0"
-                  min="0"
-                  max="360"
-                  class="w-full p-2 rounded rounded"
-                  @input="onAngleInput"
-                />
-                <span class="adk-label w-auto">Д-</span>
-                <input
-                  type="number"
-                  v-model="formData.distance"
-                  inputmode="numeric"
-                  placeholder="0"
-                  min="0"
-                  class="w-full p-2 rounded rounded"
-                />
-              </div>
-
-              <!-- Вибух: кількість, місце (на землі / у повітрі) -->
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  value="вибух"
-                  readonly
-                  class="w-full p-2 rounded"                />
-                <select
-                  v-model="formData.explosionCount"
-                  :class="['w-full p-2 rounded rounded', formData.explosionCount ? 'text-gray-900' : 'text-gray-400']"
-                >
-                  <option value="" disabled hidden>Кількість</option>
-                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
-                </select>
-                <select
-                  v-model="formData.explosionPlace"
-                  :class="['w-full p-2 rounded rounded', formData.explosionPlace ? 'text-gray-900' : 'text-gray-400']"
-                >
-                  <option value="" disabled hidden>Місце</option>
-                  <option value="на землі">на землі</option>
-                  <option value="у повітрі">у повітрі</option>
-                </select>
-              </div>
-
-              <!-- Стан справ (короткий текст) -->
-              <div>
-                <input
-                  type="text"
-                  v-model="formData.explosionStatus"
-                  class="w-full p-2 rounded rounded"
-                  placeholder="Стан справ на ОКІ"
-                  maxlength="64"
-                />
-              </div>
-            </div>
-          </div>
-
           <!-- ОПИС, якщо зброя застосовувалась (не вибух, не "не застосовувалась") -->
           <div v-if="formData.result !== 'вибух' && formData.result !== 'не застосовувалась'" class="my-4">
             <label>Опис:</label>
@@ -575,36 +545,10 @@
                 </div>
               </div>
 
-              <!-- Дія (обстріляно/знищено), кількість, клас цілі -->
+              <!-- Кількість, клас цілі -->
               <div class="flex flex-row gap-2 mt-2">
-                <div class="w-1/3">
-                  <!-- Якщо результат "не знищено" — фіксований напис "обстріляно" -->
-                  <input
-                    v-if="formData.result === 'не знищено'"
-                    type="text"
-                    value="обстріляно"
-                    readonly
-                    class="w-full p-2 rounded"                  />
-                  <!-- Якщо результат "ЗНИЩЕНО" — фіксований напис "ЗНИЩЕНО" -->
-                  <input
-                    v-else-if="formData.result === 'ЗНИЩЕНО'"
-                    type="text"
-                    value="ЗНИЩЕНО"
-                    readonly
-                    class="w-full p-2 rounded"                  />
-                  <!-- Інші випадки: можна вибрати дію вручну -->
-                  <select
-                    v-else
-                    v-model="formData.action"
-                    :class="['w-full p-2 rounded rounded', formData.action ? 'text-gray-900' : 'text-gray-400']"
-                  >
-                    <option value="" disabled hidden>Оберіть дію</option>
-                    <option v-for="action in actions" :key="action" :value="action">{{ action }}</option>
-                  </select>
-                </div>
-
                 <!-- Кількість цілей -->
-                <div class="w-1/3">
+                <div class="w-1/2">
                   <select
                     v-model="formData.targetCount"
                     :class="['w-full p-2 rounded rounded', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
@@ -615,7 +559,7 @@
                 </div>
 
                 <!-- Клас цілі (БПЛА/КР) + тип БПЛА -->
-                <div class="w-1/3 flex flex-col gap-2">
+                <div class="w-1/2 flex flex-col gap-2">
                   <select
                     v-model="formData.targetClass"
                     :class="['w-full p-2 rounded rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
@@ -645,93 +589,6 @@
             </div>
           </div>
 
-          <!-- ОПИС, якщо "не застосовувалась" -->
-          <div v-if="formData.result === 'не застосовувалась'" class="my-4 space-y-2">
-            <label>Опис:</label>
-            <div class="flex flex-col items-center gap-2">
-              <!-- А, Д, К -->
-              <div class="flex flex-row items-center gap-2 w-full">
-                <span class="adk-label w-auto">А-</span>
-                <input
-                  type="number"
-                  v-model="formData.angle"
-                  inputmode="numeric"
-                  placeholder="0"
-                  min="0"
-                  max="360"
-                  class="w-full p-2 rounded rounded"
-                  @input="onAngleInput"
-                />
-                <span class="adk-label w-auto">Д-</span>
-                <input
-                  type="number"
-                  v-model="formData.distance"
-                  inputmode="numeric"
-                  placeholder="0"
-                  min="0"
-                  class="w-full p-2 rounded rounded"
-                />
-                <span class="w-auto">К-</span>
-                <input
-                  type="number"
-                  v-model="formData.krok"
-                  inputmode="numeric"
-                  placeholder="0"
-                  min="0"
-                  max="360"
-                  class="w-full p-2 rounded rounded"
-                  @input="onKrokInput"
-                />
-              </div>
-
-              <!-- Режим виявлення, кількість, клас, тип БПЛА -->
-              <div class="flex flex-row gap-2 w-full">
-                <select
-                  v-model="formData.detectionMode"
-                  :class="['w-full p-2 rounded rounded', formData.detectionMode ? 'text-gray-900' : 'text-gray-400']"
-                >
-                  <option value="" disabled hidden>Виявлено</option>
-                  <option value="акустично">акустично</option>
-                  <option value="візуально">візуально</option>
-                  <option value="ні візуально, ні акустично не виявлено">ні візуально, ні акустично не виявлено</option>
-                </select>
-                <select
-                  v-model="formData.targetCount"
-                  :class="['w-full p-2 rounded rounded', formData.targetCount ? 'text-gray-900' : 'text-gray-400']"
-                >
-                  <option value="" disabled hidden>Кільк.</option>
-                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
-                </select>
-                <select
-                  v-model="formData.targetClass"
-                  :class="['w-full p-2 rounded rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
-                >
-                  <option value="" disabled hidden>Клас</option>
-                  <option value="БПЛА">БПЛА</option>
-                  <option value="Інше">Інше</option>
-                </select>
-              </div>
-
-              <!-- Тип БПЛА (якщо клас = БПЛА) -->
-              <select
-                v-if="formData.targetClass === 'БПЛА'"
-                v-model="formData.type"
-                :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
-              >
-                <option value="" disabled hidden>Тип БПЛА</option>
-                <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
-              <select
-                v-if="formData.targetClass === 'Інше'"
-                v-model="formData.type"
-                :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
-              >
-                <option value="" disabled hidden>Інше</option>
-                <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
-              </select>
-            </div>
-          </div>
-
             <label class="mb-2 block">Результат:</label>
             <div class="grid grid-cols-2 gap-2">
               <button
@@ -742,6 +599,98 @@
                 :style="getResultStyle(result)"
                 class="result-btn rounded py-3 px-2 font-bold text-sm transition-all"
               >{{ result }}</button>
+            </div>
+
+            <!-- ── Вибір виявлення: "не застосовувалась" ── -->
+            <div v-if="formData.result === 'не застосовувалась'" class="mt-3">
+              <label class="mb-2 block">Виявлено:</label>
+              <div class="grid grid-cols-1 gap-2">
+                <button
+                  v-for="mode in detectionModes"
+                  :key="mode.value"
+                  type="button"
+                  @click="formData.detectionMode = mode.value"
+                  :class="['result-btn rounded py-3 px-2 font-bold text-sm transition-all',
+                           formData.detectionMode === mode.value ? 'detection-btn--active' : 'detection-btn']"
+                  :style="getDetectionStyle(mode.value)"
+                >{{ mode.label }}</button>
+              </div>
+            </div>
+
+            <!-- ── Дія: "не знищено" / "ЗНИЩЕНО" / інший результат ── -->
+            <div
+              v-if="formData.result && formData.result !== 'вибух' && formData.result !== 'не застосовувалась'"
+              class="mt-3"
+            >
+              <label class="mb-2 block">Дія:</label>
+              <div
+                v-if="formData.result === 'не знищено'"
+                class="action-badge action-badge--fired"
+              >💥 обстріляно</div>
+              <div
+                v-else-if="formData.result === 'ЗНИЩЕНО'"
+                class="action-badge action-badge--destroyed"
+              >✅ ЗНИЩЕНО</div>
+              <div v-else class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="action in actions"
+                  :key="action"
+                  type="button"
+                  @click="formData.action = action"
+                  :class="['action-btn', formData.action === action ? 'action-btn--active' : '']"
+                >{{ action }}</button>
+              </div>
+            </div>
+
+            <!-- ── Вибух: А-, Д-, кількість, місце, стан ── -->
+            <div v-if="formData.result === 'вибух'" class="mt-3 space-y-2">
+              <div class="flex w-full flex-row items-center gap-2">
+                <span class="adk-label w-auto">А-</span>
+                <input
+                  type="number"
+                  v-model="formData.angle"
+                  inputmode="numeric"
+                  placeholder="0"
+                  min="0"
+                  max="360"
+                  class="w-full p-2 rounded"
+                  @input="onAngleInput"
+                />
+                <span class="adk-label w-auto">Д-</span>
+                <input
+                  type="number"
+                  v-model="formData.distance"
+                  inputmode="numeric"
+                  placeholder="0"
+                  min="0"
+                  class="w-full p-2 rounded"
+                />
+              </div>
+              <div class="flex gap-2">
+                <div class="action-badge action-badge--explosion" style="flex:1">💣 вибух</div>
+                <select
+                  v-model="formData.explosionCount"
+                  :class="['w-full p-2 rounded', formData.explosionCount ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Кількість</option>
+                  <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                </select>
+                <select
+                  v-model="formData.explosionPlace"
+                  :class="['w-full p-2 rounded', formData.explosionPlace ? 'text-gray-900' : 'text-gray-400']"
+                >
+                  <option value="" disabled hidden>Місце</option>
+                  <option value="на землі">на землі</option>
+                  <option value="у повітрі">у повітрі</option>
+                </select>
+              </div>
+              <input
+                type="text"
+                v-model="formData.explosionStatus"
+                class="w-full p-2 rounded"
+                placeholder="Стан справ на ОКІ"
+                maxlength="64"
+              />
             </div>
           </div>
 
@@ -1130,7 +1079,6 @@
           'із ЗРК Оса АКМ',
           'із ЗРК CA-95',
           'із ЗРК ITEL-1,5'
-          'із NM140/NM160 (Дінго) 12.7мм',
        ],
 
         ammoTypes: [
@@ -1172,9 +1120,15 @@
 
         results: ['не застосовувалась', 'не знищено', 'ЗНИЩЕНО', 'вибух'],
 
+        detectionModes: [
+          { value: 'акустично',    label: '🔊 акустично' },
+          { value: 'візуально',    label: '👁 візуально' },
+          { value: 'ні візуально, ні акустично не виявлено', label: '🚫 не виявлено' },
+        ],
+
         actions: ['обстріляно', 'знищено'],
 
-        uavTypes: ['БпЛА типу Гербера', 'БпЛА типу Зала', 'БпЛА типу Молнія', 'БпЛА типу Невизначений', 'БпЛА типу Орлан', 'БпЛА типу Пародія', 'БпЛА типу реактивний Шахед', 'БпЛА типу Суперкам', 'БпЛА типу ШАХЕД', 'Квадрокоптер', 'FPV-дрон'],
+        uavTypes: ['БпЛА типу Гербера', 'БпЛА типу Зала', 'БпЛА типу Молнія', 'БпЛА типу Невизначений', 'БпЛА типу Орлан', 'БпЛА типу реактивний Шахед', 'БпЛА типу Суперкам', 'БпЛА типу ШАХЕД', 'Квадрокоптер', 'FPV-дрон'],
 
         uavTypes1: ['Вибух', 'Вибух на землі', 'Виходи', 'Гелікоптер', 'Зонд', 'Крилата Ракета', 'Літак Великий.', 'Літак Малий.', 'Постріли.', 'Робота суміжних підрозділів', 'Спалах в небі'],
           
@@ -1335,6 +1289,17 @@
           this.darkMode = !this.darkMode;
           document.body.classList.toggle('dark', this.darkMode);
           localStorage.setItem('darkMode', this.darkMode ? '1' : '0');
+        },
+
+        getDetectionStyle(value) {
+          const selected = this.formData.detectionMode === value;
+          return {
+            background: selected ? '#0c4a6e' : '#0369a1',
+            color: '#ffffff',
+            border: selected ? '3px solid #082f49' : '3px solid transparent',
+            opacity: selected ? 1 : 0.75,
+            transform: selected ? 'scale(1.02)' : 'scale(1)',
+          };
         },
 
         getResultStyle(result) {
