@@ -492,6 +492,7 @@
                 <label class="mb-1">№ цілі:</label>
                 <input type="text" v-model="formData.targetNumber" v-mask="'####'" placeholder="0000"
                   :class="['w-full p-2 rounded', formData.targetNumber ? 'field-filled' : '']" />
+                <span class="text-xs mt-1 opacity-60">{{ formData.targetNumber ? '' : 'якщо порожньо → б/н' }}</span>
               </div>
               <div class="flex flex-col w-1/2">
                 <label class="mb-1">Висота (м):</label>
@@ -859,6 +860,19 @@
 
           </div><!-- /section 5 -->
 
+          <!-- КОМЕНТАР -->
+          <div class="form-section">
+            <div class="flex flex-col">
+              <label class="mb-1">💬 Коментар:</label>
+              <textarea
+                v-model="formData.comment"
+                rows="3"
+                :class="['w-full p-2 rounded', formData.comment ? 'field-filled' : '']"
+                placeholder="Додаткові відомості..."
+              ></textarea>
+            </div>
+          </div>
+
           <!-- БЛОК 6: СКЛАД -->
           <div class="form-section">
             <div class="section-title"><span class="section-icon">🪖</span> Склад</div>
@@ -905,15 +919,6 @@
                 + Додати бійця
               </button>
 
-              <div class="flex flex-col mt-2">
-                <label class="mb-1">💬 Коментар:</label>
-                <textarea
-                  v-model="formData.comment"
-                  rows="3"
-                  :class="['w-full p-2 rounded', formData.comment ? 'field-filled' : '']"
-                  placeholder="Додаткові відомості..."
-                ></textarea>
-              </div>
             </div>
           </div>
 
@@ -928,7 +933,7 @@
                 ? 'background:#f1f5f9;color:#0f172a'
                 : 'background:#0f172a;color:#f1f5f9'"
             >{{ darkMode ? '☀️ День' : '🌙 Ніч' }}</button>
-            <!-- Копіює сформований текст у буфер обміну -->
+            <!-- Копіює / Поширює сформований текст -->
             <div class="w-full flex items-center gap-2">
               <button
                 type="button"
@@ -936,6 +941,15 @@
                 :style="{background: copySuccess ? '#16a34a' : '#15803d', boxShadow: copySuccess ? 'none' : '0 3px 12px rgba(21,128,61,0.4)'}" class="btn-copy rounded flex-1 text-white transition-all hover:opacity-90"
               >
                 {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
+              </button>
+              <button
+                v-if="canShare"
+                type="button"
+                @click="shareData"
+                class="btn-copy rounded flex-1 text-white transition-all hover:opacity-90"
+                style="background:#0369a1; box-shadow:0 3px 12px rgba(3,105,161,0.4);"
+              >
+                📤 Поширити
               </button>
               <div v-if="datetimeError" class="copy-error-badge">⚠️ {{ datetimeError }}</div>
             </div>
@@ -1473,7 +1487,7 @@
           localStorage.removeItem('staticFormData');
         },
 
-        copyData() {
+        buildText() {
           // Синхронізуємо datetime -> date/time перед копіюванням
           this.parseDatetime();
           if (this.datetimeError) {
@@ -1665,10 +1679,34 @@
             .map(line => line.trimStart())
             .join('\n');
 
+          return text;
+        },
+
+        copyData() {
+          this.parseDatetime();
+          if (this.datetimeError) {
+            this.$el.querySelector('.btn-copy').classList.remove('btn-shake');
+            void this.$el.querySelector('.btn-copy').offsetWidth;
+            this.$el.querySelector('.btn-copy').classList.add('btn-shake');
+            setTimeout(() => {
+              const btn = this.$el.querySelector('.btn-copy');
+              if (btn) btn.classList.remove('btn-shake');
+            }, 600);
+            return;
+          }
+          const text = this.buildText();
           navigator.clipboard.writeText(text).then(() => {
             this.copySuccess = true;
             setTimeout(() => { this.copySuccess = false; }, 2000);
           });
+        },
+
+        shareData() {
+          this.parseDatetime();
+          if (this.datetimeError) return;
+          const text = this.buildText();
+          if (!text) return;
+          navigator.share({ text }).catch(() => {});
         },
 
         onAngleInput(e) {
