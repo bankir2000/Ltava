@@ -567,7 +567,7 @@
                   >
                     <option value="" disabled hidden>Клас</option>
                     <option value="БПЛА">БПЛА</option>
-                    <option value="Інше">Інше</option>
+                    <option value="КР">КР</option>
                   </select>
                   <select
                     v-if="formData.targetClass === 'БПЛА'"
@@ -576,14 +576,6 @@
                   >
                     <option value="" disabled hidden>Тип БПЛА</option>
                     <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
-                  </select>
-                  <select
-                    v-if="formData.targetClass === 'Інше'"
-                    v-model="formData.type"
-                    :class="['w-full p-2 rounded rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
-                  >
-                    <option value="" disabled hidden>Інше</option>
-                    <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
                   </select>
                 </div>
               </div>
@@ -655,9 +647,11 @@
                 >
                   <option value="" disabled hidden>Клас</option>
                   <option value="БПЛА">БПЛА</option>
-                  <option value="Інше">Інше</option>
+                  <option value="КР">КР</option>
                 </select>
               </div>
+              
+              <!-- Тип БПЛА (тільки якщо вибрано БПЛА) -->
               <select
                 v-if="formData.targetClass === 'БПЛА'"
                 v-model="formData.type"
@@ -665,14 +659,6 @@
               >
                 <option value="" disabled hidden>Тип БПЛА</option>
                 <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
-              <select
-                v-if="formData.targetClass === 'Інше'"
-                v-model="formData.type"
-                :class="['w-full p-2 rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
-              >
-                <option value="" disabled hidden>Інше</option>
-                <option v-for="type in uavTypes1" :key="type" :value="type">{{ type }}</option>
               </select>
 
               <!-- Виявлено -->
@@ -1215,7 +1201,6 @@
         actions: ['обстріляно', 'знищено'],
 
         uavTypes: ['Shahed', 'Shahed (реактивний)','Гербера', 'Пародія', 'Невідомий'],
-        uavTypes1: ['Вибух', 'Вибух на землі', 'Виходи', 'Гелікоптер', 'Зонд', 'Крилата Ракета', 'Літак Великий.', 'Літак Малий.', 'Постріли.', 'Робота суміжних підрозділів', 'Спалах в небі'],
           
         ranks: ['солд.', 'ст. солд.', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
       },
@@ -1311,9 +1296,9 @@
           deep: true
         },
         'formData.targetClass'(newVal) {
-          if (newVal === 'Інше') {
+          if (newVal === 'КР') {
             this.formData.type = '';
-          } else if (!this.formData.type) {
+          } else if (newVal === 'БПЛА' && !this.formData.type) {
             this.formData.type = this.uavTypes[0];
           }
         },
@@ -1601,10 +1586,9 @@
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
             if (this.formData.detectionMode) text += `, ${this.formData.detectionMode}`;
             if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
-            if (this.formData.type) {
+            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
+            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
               text += ` ${this.formData.type}`;
-            } else if (this.formData.targetClass) {
-              text += ` ${this.formData.targetClass}`;
             }
           } else {
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
@@ -1616,10 +1600,9 @@
               text += `, ${this.formData.action}`;
             }
             if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
-            if (this.formData.type) {
+            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
+            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
               text += ` ${this.formData.type}`;
-            } else if (this.formData.targetClass) {
-              text += ` ${this.formData.targetClass}`;
             }
           }
 
@@ -1775,4 +1758,3 @@
   </script>
 </body>
 </html>
-<!-- created by Yaroslav (Ringleader7) -->
