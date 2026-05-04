@@ -1010,7 +1010,10 @@
         },
 
         units: [    
-  '13 озкб',
+ '13 озкб',
+ '116 обр ТРО',
+ '225 зрп',
+ '643 озкб',
 '1 брОП НГУ',
 '1 обр ТРО',
 '101 обро ГШ',
@@ -1032,7 +1035,6 @@
 '114 брта',
 '114 обр ТРО',
 '115 обр ТРО',
-'116 обр ТРО',
 '1163 бо',
 '117 обр ТРО',
 '118 обр ТРО',
@@ -1061,7 +1063,6 @@
 '21 обр НГУ',
 '222 АББ',
 '223 зрп',
-'225 зрп',
 '229 ОЦЗ',
 '230 ОБЗ',
 '232 ОБЗ',
@@ -1100,7 +1101,6 @@
 '637 озкб',
 '638 озкб',
 '642 озкб',
-'643 озкб',
 '644 озкб',
 '645 озкб',
 '646 озкб',
@@ -1131,8 +1131,9 @@
         weapons: [
           'із ЗКУ Viktor MR-2 14.5',
           'зі стрілецької зброї 5.45/5.56',
+        'із ВКК Browning M2 12.7',
+        'із NM140/NM160 (Дінго) 12.7',
           'зі стрілецької зброї 7.62',
-          'із ВКК Browning M2 12.7',
           'із ВКК Canik M2 12.7',
           'із ВКК SAR 127 MT 12.7',
           'із НСВ Утьос 12.7',
@@ -1274,7 +1275,7 @@
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            const staticKeys = ['pidrozdil', 'pozivniyPrefix', 'pozivniy', 'naseleniyPunkt', 'oblast', 'weapons', 'personnel'];
+            const staticKeys = ['pidrozdil', 'pozivniyPrefix', 'pozivniy', 'naseleniyPunkt', 'oblast', 'weapons', 'personnel', 'rozxidTypes'];
             staticKeys.forEach(key => {
               if (parsed[key] !== undefined) {
                 this.formData[key] = parsed[key];
@@ -1284,6 +1285,10 @@
             if (!Array.isArray(this.formData.weapons)) {
               const oldWeapon = this.formData.zbroya || '';
               this.formData.weapons = [{ name: oldWeapon }];
+            }
+            // Відновлення типів набоїв (без кількості)
+            if (Array.isArray(parsed.rozxidTypes) && parsed.rozxidTypes.length > 0) {
+              this.formData.rozxid = parsed.rozxidTypes.map(t => ({ type: t, quantity: null }));
             }
           } catch (e) {
             console.warn('Не вдалося відновити дані з localStorage:', e);
@@ -1312,6 +1317,11 @@
           } else if (!this.formData.type) {
             this.formData.type = this.uavTypes[0];
           }
+        },
+
+        'formData.rozxid': {
+          handler() { this._saveStatic(); },
+          deep: true
         },
 
         'formData.result'(newVal) {
@@ -1417,6 +1427,7 @@
             oblast:         this.formData.oblast,
             weapons:        this.formData.weapons,
             personnel:      this.formData.personnel,
+            rozxidTypes:    this.formData.rozxid.map(r => r.type || ''),
           };
           localStorage.setItem('staticFormData', JSON.stringify(staticData));
         },
