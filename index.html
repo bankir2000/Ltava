@@ -943,7 +943,6 @@
                 {{ copySuccess ? '✓ Скопійовано!' : 'Скопіювати' }}
               </button>
               <button
-                v-if="canShare"
                 type="button"
                 @click="shareData"
                 class="btn-copy rounded flex-1 text-white transition-all hover:opacity-90"
@@ -1222,6 +1221,9 @@
       },
 
       computed: {
+        canShare() {
+          return typeof navigator.share === 'function';
+        },
         formProgress() {
           let filled = 0, total = 6;
           if (this.formData.pidrozdil) filled++;
@@ -1706,7 +1708,14 @@
           if (this.datetimeError) return;
           const text = this.buildText();
           if (!text) return;
-          navigator.share({ text }).catch(() => {});
+          if (typeof navigator.share === 'function') {
+            navigator.share({ text }).catch(() => {});
+          } else {
+            navigator.clipboard.writeText(text).then(() => {
+              this.copySuccess = true;
+              setTimeout(() => { this.copySuccess = false; }, 2000);
+            });
+          }
         },
 
         onAngleInput(e) {
