@@ -1116,7 +1116,8 @@
 
         weapons: [
           'із ЗКУ Viktor MR-2 14.5',
-          'зі стрілецької зброї 5.45/5.56',
+          'зі стрілецької зброї 5.45',
+        'зі стрілецької зброї 5.56',
         'із ВКК Browning M2 12.7',
         'із ЗУ 23-2 23мм',
           'із АЗГ М-75 20мм.',
@@ -1203,7 +1204,7 @@
 
         uavTypes: ['Shahed', 'Shahed (реактивний)', 'Гербера', 'Пародія', 'Невідомий'],
           
-        ranks: ['солд.', 'ст. солд.', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
+        ranks: ['солд.', 'ст. солд.', 'матрос', 'ст.матрос', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
       },
 
       computed: {
@@ -1224,7 +1225,7 @@
           return this.formData.weapons.some(w => w.name === 'із ЗКУ Viktor MR-2 14.5');
         },
         isRifle545() {
-          return this.formData.weapons.some(w => w.name === 'зі стрілецької зброї 5.45/5.56');
+          return this.formData.weapons.some(w => w.name === 'зі стрілецької зброї 5.45');
         },
         showViktorAmmo() {
           return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
@@ -1232,11 +1233,24 @@
         showAk74() {
           return this.isRifle545 && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
+        hasOtherWeapons() {
+          // Зброя окрім Viktor MR-2 та стрілецької 5.45/5.56
+          return this.formData.weapons.some(w =>
+            w.name &&
+            w.name !== 'із ЗКУ Viktor MR-2 14.5' &&
+            w.name !== 'зі стрілецької зброї 5.45'
+          );
+        },
         showRozxid() {
-          const specialAmmo = this.showViktorAmmo || this.showAk74;
-          return !specialAmmo &&
-            this.formData.result !== 'не застосовувалась' &&
-            this.formData.result !== 'вибух';
+          const resultOk = this.formData.result !== 'не застосовувалась' &&
+            this.formData.result !== 'вибух' &&
+            this.formData.result !== '';
+          if (!resultOk) return false;
+          // Показувати розхід якщо:
+          // 1. Немає жодної спеціальної зброї (стандартна поведінка)
+          // 2. АБО є інша зброя поряд зі спеціальною (змішаний склад)
+          const hasSpecial = this.showViktorAmmo || this.showAk74;
+          return !hasSpecial || this.hasOtherWeapons;
         }
       },
 
