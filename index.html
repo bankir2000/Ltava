@@ -754,7 +754,7 @@
           </div>
 
           <!-- БЛОК 5: РОЗХІД / ОПИС -->
-          <div class="form-section" v-if="showRozxid || showViktorAmmo || showAk74 || formData.result === 'вибух' || formData.result !== ''">
+          <div class="form-section" v-if="showRozxid || showViktorAmmo || showAk74 || showDshk || formData.result === 'вибух' || formData.result !== ''">
             <div class="section-title"><span class="section-icon">📦</span> Розхід </div>
 
           <div v-if="showRozxid">
@@ -803,7 +803,7 @@
           <div v-if="showViktorAmmo" class="flex flex-col gap-3 mb-2">
             <div class="mb-1">Розхід БК ЗУ MR2 VIKTOR 14,5мм:</div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-3МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-3МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo1"
@@ -812,7 +812,7 @@
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-2МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-2МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo2"
@@ -821,7 +821,7 @@
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold" style="color:var(--text-dim)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-1Б32-2МДЗ</label>
+              <label class="text-sm font-semibold" style="color:var(--text)">ЗУ MR2 VIKTOR 14,5мм, стрічка 1БЗТ-1Б32-2МДЗ</label>
               <input
                 type="tel"
                 v-model="formData.viktorAmmo3"
@@ -834,13 +834,100 @@
           <!-- АК74 БЛОК РОЗХОДУ -->
           <div v-if="showAk74" class="flex flex-col gap-3 mb-2">
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold" style="color:var(--text-dim)">АК74-5.45mm</label>
+              <label class="text-sm font-semibold" style="color:var(--text)">АК74 - 5.45мм 1ТЗ-2ПС</label>
               <input
                 type="tel"
                 v-model="formData.ak74Ammo"
                 placeholder="Кількість"
                 class="w-full p-2 rounded rounded"
               />
+            </div>
+
+            <!-- Додатковий розхід поряд зі стрілецькою зброєю -->
+            <div class="mt-1">
+              <div class="mb-1 font-semibold" style="font-size:13px;color:var(--text)">Додатковий розхід БК:</div>
+              <div class="flex flex-col gap-2">
+                <div v-for="(item, idx) in formData.ak74ExtraRozxid" :key="'ak74x'+idx" class="flex flex-col gap-2 items-start">
+                  <select
+                    v-model="item.type"
+                    :class="['w-full p-2 rounded', item.type ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Оберіть зі списку</option>
+                    <option v-for="ammo in ammoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
+                  </select>
+                  <div class="flex w-full gap-2">
+                    <input
+                      type="text"
+                      v-model="item.quantity"
+                      placeholder="Кількість"
+                      v-mask="'####'"
+                      class="w-full p-2 rounded"
+                    />
+                    <button
+                      type="button"
+                      class="hover:opacity-90 text-white rounded px-3 py-2"
+                      style="background:var(--danger)"
+                      @click="formData.ak74ExtraRozxid.splice(idx, 1)"
+                    >Видалити</button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  @click="formData.ak74ExtraRozxid.push({ type: '', quantity: null })"
+                  class="hover:opacity-90 text-white rounded px-3 py-2 mt-1"
+                  style="background:var(--accent)"
+                >+ Додати розхід</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ДШК БЛОК РОЗХОДУ -->
+          <div v-if="showDshk" class="flex flex-col gap-3 mb-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold" style="color:var(--text)">ДШК 12.7х108мм — стрічка 1БЗТ-3Б32</label>
+              <input
+                type="tel"
+                v-model="formData.dshkAmmo"
+                placeholder="Кількість"
+                class="w-full p-2 rounded rounded"
+              />
+            </div>
+
+            <!-- Додатковий розхід ДШК -->
+            <div class="mt-1">
+              <div class="mb-1 font-semibold" style="font-size:13px;color:var(--text)">Додатковий розхід БК:</div>
+              <div class="flex flex-col gap-2">
+                <div v-for="(item, idx) in formData.dshkExtraRozxid" :key="'dshkx'+idx" class="flex flex-col gap-2 items-start">
+                  <select
+                    v-model="item.type"
+                    :class="['w-full p-2 rounded', item.type ? 'text-gray-900' : 'text-gray-400']"
+                  >
+                    <option value="" disabled hidden>Оберіть зі списку</option>
+                    <option v-for="ammo in ammoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
+                  </select>
+                  <div class="flex w-full gap-2">
+                    <input
+                      type="text"
+                      v-model="item.quantity"
+                      placeholder="Кількість"
+                      v-mask="'####'"
+                      class="w-full p-2 rounded"
+                    />
+                    <button
+                      type="button"
+                      class="hover:opacity-90 text-white rounded px-3 py-2"
+                      style="background:var(--danger)"
+                      @click="formData.dshkExtraRozxid.splice(idx, 1)"
+                    >Видалити</button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  @click="formData.dshkExtraRozxid.push({ type: '', quantity: null })"
+                  class="hover:opacity-90 text-white rounded px-3 py-2 mt-1"
+                  style="background:var(--accent)"
+                >+ Додати розхід</button>
+              </div>
             </div>
           </div>
 
@@ -988,6 +1075,9 @@
           viktorAmmo2: '',
           viktorAmmo3: '',
           ak74Ammo: '',
+          ak74ExtraRozxid: [{ type: '', quantity: null }],
+          dshkAmmo: '',
+          dshkExtraRozxid: [{ type: '', quantity: null }],
           personnel: [{ rank: '', pib: '', onBch: false }],
           explosionCount: '',
           explosionPlace: '',
@@ -1227,18 +1317,25 @@
         isRifle545() {
           return this.formData.weapons.some(w => w.name === 'зі стрілецької зброї 5.45');
         },
+        isDshk() {
+          return this.formData.weapons.some(w => w.name === 'із ВКК ДШК 12.7');
+        },
         showViktorAmmo() {
           return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
         showAk74() {
           return this.isRifle545 && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
+        showDshk() {
+          return this.isDshk && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
+        },
         hasOtherWeapons() {
-          // Зброя окрім Viktor MR-2 та стрілецької 5.45/5.56
+          // Зброя окрім спеціальних блоків
           return this.formData.weapons.some(w =>
             w.name &&
             w.name !== 'із ЗКУ Viktor MR-2 14.5' &&
-            w.name !== 'зі стрілецької зброї 5.45'
+            w.name !== 'зі стрілецької зброї 5.45' &&
+            w.name !== 'із ВКК ДШК 12.7'
           );
         },
         showRozxid() {
@@ -1246,10 +1343,7 @@
             this.formData.result !== 'вибух' &&
             this.formData.result !== '';
           if (!resultOk) return false;
-          // Показувати розхід якщо:
-          // 1. Немає жодної спеціальної зброї (стандартна поведінка)
-          // 2. АБО є інша зброя поряд зі спеціальною (змішаний склад)
-          const hasSpecial = this.showViktorAmmo || this.showAk74;
+          const hasSpecial = this.showViktorAmmo || this.showAk74 || this.showDshk;
           return !hasSpecial || this.hasOtherWeapons;
         }
       },
@@ -1682,6 +1776,27 @@
               const ps = amt - tz;
               text += `\nНабій 5,45х39 мм ТЗ - ${tz}\nНабій 5,45х39 мм ПС - ${ps}`;
             }
+            // Додатковий розхід БК
+            this.formData.ak74ExtraRozxid.forEach(item => {
+              if (item.type && Number(item.quantity) > 0) {
+                text += `\n${item.type} - ${item.quantity}`;
+              }
+            });
+          }
+
+          // ДШК розрахунок БК (стрічка 1БЗТ-3Б32)
+          if (this.showDshk) {
+            const amt = Number(this.formData.dshkAmmo);
+            if (amt > 0) {
+              const bzt = Math.round(amt / 4);
+              const b32 = amt - bzt;
+              text += `\nНабій 12,7х108 мм (ДШК, НСВ, Корд, W85) БЗТ - ${bzt}\nНабій 12,7х108 мм (ДШК, НСВ, Корд, W85) Б-32 - ${b32}`;
+            }
+            this.formData.dshkExtraRozxid.forEach(item => {
+              if (item.type && Number(item.quantity) > 0) {
+                text += `\n${item.type} - ${item.quantity}`;
+              }
+            });
           }
 
           text = text
