@@ -483,7 +483,23 @@
             </div>
           </div>
 
-          <!-- БЛОК 4: ЦІЛЬ -->
+          <!-- БЛОК 4: РЕЗУЛЬТАТ -->
+          <div class="form-section">
+            <div class="section-title"><span class="section-icon">🎯</span> Результат</div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                v-for="result in results"
+                :key="result"
+                @click="formData.result = result"
+                :style="getResultStyle(result)"
+                class="result-btn rounded py-3 px-2 font-bold text-sm transition-all"
+              >{{ result }}</button>
+            </div>
+          </div>
+
+          <!-- БЛОК 5: ЦІЛЬ -->
           <div class="form-section">
             <div class="section-title"><span class="section-icon">🎯</span> Ціль</div>
 
@@ -582,19 +598,7 @@
             </div>
           </div>
 
-            <label class="mb-2 block">Результат:</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                v-for="result in results"
-                :key="result"
-                @click="formData.result = result"
-                :style="getResultStyle(result)"
-                class="result-btn rounded py-3 px-2 font-bold text-sm transition-all"
-              >{{ result }}</button>
-            </div>
-
-            <!-- ── "не застосовувалась": А-, К-, Д-, Кількість, Клас, Виявлено ── -->
+            <!-- ── "не застосовувалась": А-, К-, Д-, Кількість, Вибір цілі, Виявлено ── -->
             <div v-if="formData.result === 'не застосовувалась'" class="mt-3 space-y-2">
 
               <!-- А, К, Д -->
@@ -632,7 +636,7 @@
                 />
               </div>
 
-              <!-- Кількість і Клас -->
+              <!-- Кількість і Вибір цілі -->
               <div class="flex gap-2">
                 <select
                   v-model="formData.targetCount"
@@ -642,24 +646,13 @@
                   <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
                 </select>
                 <select
-                  v-model="formData.targetClass"
-                  :class="['w-full p-2 rounded', formData.targetClass ? 'text-gray-900' : 'text-gray-400']"
+                  v-model="formData.detectionTarget"
+                  :class="['w-full p-2 rounded', formData.detectionTarget ? 'text-gray-900' : 'text-gray-400']"
                 >
-                  <option value="" disabled hidden>Клас</option>
-                  <option value="БПЛА">БПЛА</option>
-                  <option value="КР">КР</option>
+                  <option value="" disabled hidden>Вибір цілі</option>
+                  <option v-for="t in detectionTargets" :key="t" :value="t">{{ t }}</option>
                 </select>
               </div>
-              
-              <!-- Тип БПЛА (тільки якщо вибрано БПЛА) -->
-              <select
-                v-if="formData.targetClass === 'БПЛА'"
-                v-model="formData.type"
-                :class="['w-full p-2 rounded', formData.type ? 'text-gray-900' : 'text-gray-400']"
-              >
-                <option value="" disabled hidden>Тип БПЛА</option>
-                <option v-for="type in uavTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
 
               <!-- Виявлено -->
               <label class="mb-1 block">Виявлено:</label>
@@ -1070,6 +1063,7 @@
           targetClass: '',
           type: '',
           detectionMode: '',
+          detectionTarget: '',
           rozxid: [{ type: '', quantity: null }],
           viktorAmmo1: '',
           viktorAmmo2: '',
@@ -1294,6 +1288,26 @@
         actions: ['обстріляно', 'знищено'],
 
         uavTypes: ['Shahed', 'Shahed (реактивний)', 'Гербера', 'Пародія', 'Невідомий'],
+
+        detectionTargets: [
+          'FPV-дрон',
+          'БпЛА типу Гербера',
+          'БпЛА типу Зала',
+          'БпЛА типу Молнія',
+          'БпЛА типу Невизначений',
+          'БпЛА типу Орлан',
+          'БпЛА типу реактивний Шахед',
+          'БпЛА типу Суперкам',
+          'БпЛА типу ШАХЕД',
+          'Виходи',
+          'Гелікоптер',
+          'Зонд',
+          'Квадрокоптер',
+          'Крилата Ракета',
+          'Літак Великий',
+          'Літак Малий',
+          'Робота суміжних підрозділів'
+        ],
           
         ranks: ['солд.', 'ст. солд.', 'матрос', 'ст.матрос', 'мол. с-нт', 'с-нт', 'ст. с-нт', 'гол. с-нт', 'шт. с-нт', 'м. с-нт', 'мол. л-т', 'л-т', 'ст. л-т', 'к-н', 'м-р', 'п.п-к', 'п-к']
       },
@@ -1696,10 +1710,7 @@
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
             if (this.formData.detectionMode) text += `, ${this.formData.detectionMode}`;
             if (this.formData.targetCount) text += ` ${this.formData.targetCount}`;
-            if (this.formData.targetClass) text += ` ${this.formData.targetClass}`;
-            if (this.formData.targetClass === 'БПЛА' && this.formData.type) {
-              text += ` ${this.formData.type}`;
-            }
+            if (this.formData.detectionTarget) text += ` ${this.formData.detectionTarget}`;
           } else {
             text += `\nОпис: А-${angle}, Д-${distance}, К-${krok}`;
             if (this.formData.result === 'не знищено') {
