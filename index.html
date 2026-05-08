@@ -1296,7 +1296,7 @@
         detectionModes: [
           { value: 'акустично',    label: '🔊 акустично' },
           { value: 'візуально',    label: '👁 візуально' },
-          { value: 'ні візуально, ні акустично не виявлено', label: '🚫 не виявлено' },
+          { value: 'Візуально та акустично не виявлено', label: '🚫 не виявлено' },
         ],
 
         actions: ['обстріляно', 'знищено'],
@@ -1318,8 +1318,8 @@
           'Зонд',
           'Квадрокоптер',
           'Крилата Ракета',
-          'Літак Великий',
-          'Літак Малий',
+          'Літак великий',
+          'Літак малий',
           'Робота суміжних підрозділів'
         ],
           
@@ -1335,8 +1335,8 @@
             'Гелікоптер',
             'Зонд',
             'Квадрокоптер',
-            'Літак Великий',
-            'Літак Малий'
+            'Літак великий',
+            'Літак малий'
           ];
           return sviyTargets.includes(this.formData.detectionTarget);
         },
@@ -1849,6 +1849,59 @@
           return text;
         },
 
+        buildSmsText() {
+          this.parseDatetime();
+          if (this.datetimeError) return null;
+
+          const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const [yyyy, mm, dd] = parts;
+            return `${dd}.${mm}.${yyyy}`;
+          };
+
+          const formattedDate = formatDate(this.formData.date);
+          const targetNumberRaw = this.formData.targetNumber || '0000';
+          let targetNumberDisplay = targetNumberRaw;
+          if (!targetNumberDisplay || /^0+$/.test(targetNumberDisplay)) {
+            targetNumberDisplay = 'б/н';
+          }
+
+          const angle    = (this.formData.angle    !== '' && this.formData.angle    !== null && this.formData.angle    !== undefined) ? String(this.formData.angle)    : null;
+          const distance = (this.formData.distance !== '' && this.formData.distance !== null && this.formData.distance !== undefined) ? String(this.formData.distance) : null;
+          const krok     = (this.formData.krok     !== '' && this.formData.krok     !== null && this.formData.krok     !== undefined) ? String(this.formData.krok)     : null;
+          const height   = (this.formData.height   !== '' && this.formData.height   !== null && this.formData.height   !== undefined) ? String(this.formData.height)   : null;
+
+          let sms = `${formattedDate} ${this.formData.time || ''} ${this.formData.pozivniyPrefix} ${this.formData.pozivniy} р-н н.п. ${this.formData.naseleniyPunkt} № цілі: ${targetNumberDisplay}`;
+
+          if (angle)    sms += ` А-${angle}`;
+          if (krok)     sms += ` К-${krok}`;
+          if (distance) sms += ` Д-${distance}`;
+          if (height)   sms += ` В-${height}`;
+
+          if (this.formData.detectionMode)   sms += `, ${this.formData.detectionMode}`;
+          if (this.formData.targetCount)     sms += ` ${this.formData.targetCount}`;
+          if (this.formData.detectionTarget) sms += ` ${this.formData.detectionTarget}`;
+
+          const sviyText = this.formData.isSviy ? 'Свій ' : '';
+          const commentText = this.formData.comment && this.formData.comment.trim()
+            ? this.formData.comment.trim()
+            : '';
+          if (sviyText || commentText) {
+            sms += ` ${sviyText}${commentText}`;
+          }
+
+          return sms.trim();
+        },
+
+        getOutputText() {
+          if (this.formData.result === 'не застосовувалась') {
+            return this.buildSmsText();
+          }
+          return this.buildText();
+        },
+
         copyData() {
           this.parseDatetime();
           if (this.datetimeError) {
@@ -1861,7 +1914,8 @@
             }, 600);
             return;
           }
-          const text = this.buildText();
+          const text = this.getOutputText();
+          if (!text) return;
           navigator.clipboard.writeText(text).then(() => {
             this.copySuccess = true;
             setTimeout(() => { this.copySuccess = false; }, 2000);
@@ -1871,7 +1925,7 @@
         shareData() {
           this.parseDatetime();
           if (this.datetimeError) return;
-          const text = this.buildText();
+          const text = this.getOutputText();
           if (!text) return;
           if (typeof navigator.share === 'function') {
             navigator.share({ text }).catch(() => {});
