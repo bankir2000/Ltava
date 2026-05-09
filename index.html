@@ -365,6 +365,16 @@
       <form id="form" @submit.prevent>
         <div class="flex flex-col gap-1">
 
+          <!-- КНОПКА ОНОВЛЕННЯ -->
+          <div class="flex justify-end mb-1">
+            <button
+              type="button"
+              @click="reloadPage"
+              title="Оновити сторінку"
+              style="background:transparent; border:none; font-size:1.3rem; cursor:pointer; opacity:0.55; padding:2px 4px;"
+            >🔄</button>
+          </div>
+
           <!-- ПРОГРЕС -->
           <div class="progress-bar-wrap">
             <div class="progress-bar-fill" :style="{width: formProgress + '%'}"></div>
@@ -1900,6 +1910,10 @@
             return this.buildSmsText();
           }
           return this.buildText();
+        },
+
+        reloadPage() {
+          window.location.reload();
         },
 
         copyData() {
