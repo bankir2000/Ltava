@@ -1011,6 +1011,20 @@
             </div>
           </div>
 
+          <!-- БЛОК ПЕРЕГЛЯДУ СМС -->
+          <div class="form-section" v-if="smsPreviewText !== null">
+            <div class="section-title"><span class="section-icon">✏️</span> Перегляд СМС</div>
+            <textarea
+              v-model="smsEditText"
+              ref="smsTextarea"
+              rows="1"
+              readonly
+              class="w-full p-2 rounded field-filled"
+              style="font-family: monospace; font-size: 14px !important; line-height: 1.5; resize: none; overflow: hidden; cursor: default;"
+              placeholder="Тут з'явиться сформований текст…"
+            ></textarea>
+          </div>
+
           <!-- КНОПКИ: СКОПІЮВАТИ / ОЧИСТИТИ -->
           <div class="sticky-buttons flex flex-col items-start gap-2 mt-4">
             <!-- Перемикач день/ніч -->
@@ -1060,6 +1074,7 @@
         copySuccess: false,
         datetimeError: '',
         darkMode: false,
+        smsEditText: '',
         hexTokens: { 
           A: { pattern: /[а-яА-ЯІіЇїЄєҐґ0-9 \-]/, transform: v => v.toUpperCase() }, 
           B: { pattern: /[а-яА-ЯІіЇїЄєҐґ ]/, transform: v => v.toUpperCase() }
@@ -1337,6 +1352,10 @@
       },
 
       computed: {
+        smsPreviewText() {
+          if (!this.formData.datetime || this.datetimeError) return null;
+          return this.getOutputText();
+        },
         showSviyButton() {
           const sviyTargets = [
             'FPV-дрон',
@@ -1473,6 +1492,15 @@
           if (newVal === 'вибух') {
             this.formData.height = '';
             this.formData.krok = '';
+          }
+        }
+      },
+
+      watch: {
+        smsPreviewText(newVal) {
+          if (newVal !== null) {
+            this.smsEditText = newVal;
+            this.$nextTick(() => this.autoResizeTextarea());
           }
         }
       },
@@ -1912,6 +1940,13 @@
           return this.buildText();
         },
 
+        autoResizeTextarea() {
+          const el = this.$refs.smsTextarea;
+          if (!el) return;
+          el.style.height = 'auto';
+          el.style.height = el.scrollHeight + 'px';
+        },
+
         reloadPage() {
           window.location.reload();
         },
@@ -1928,7 +1963,7 @@
             }, 600);
             return;
           }
-          const text = this.getOutputText();
+          const text = this.smsEditText || this.getOutputText();
           if (!text) return;
           navigator.clipboard.writeText(text).then(() => {
             this.copySuccess = true;
@@ -1939,7 +1974,7 @@
         shareData() {
           this.parseDatetime();
           if (this.datetimeError) return;
-          const text = this.getOutputText();
+          const text = this.smsEditText || this.getOutputText();
           if (!text) return;
           if (typeof navigator.share === 'function') {
             navigator.share({ text }).catch(() => {});
