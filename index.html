@@ -1957,7 +1957,7 @@
           if (krok)     adknParts.push(`К-${krok}°`);
           if (height)   adknParts.push(`Н-${height}м`);
           if (distance) adknParts.push(`Д-${distance}м`);
-          const adknText = adknParts.length ? ` (${adknParts.join(' ')})` : '';
+          const adknText = adknParts.length ? ` (${adknParts.join(' ')}.)` : '';
 
           // "Візуально та акустично не виявлено" не потрапляє в основний рядок —
           // ця фраза переноситься в окремий рядок "Причина незастосування".
@@ -1970,6 +1970,9 @@
           }
 
           let line3 = `${this.formData.pozivniyPrefix} ${this.formData.pozivniy}`;
+          if (this.formData.pidrozdil && this.formData.pidrozdil.trim()) {
+            line3 += ` ${this.formData.pidrozdil.trim()}`;
+          }
           if (weaponsLine) line3 += `, ${weaponsLine}`;
           line3 += `, р-н н.п. ${this.formData.naseleniyPunkt}${adknText}`;
           line3 += detectionPart;
