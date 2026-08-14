@@ -684,6 +684,19 @@
                 >{{ mode.label }}</button>
               </div>
 
+              <!-- ── Кнопка "Свій" для певних типів цілей ── -->
+              <div
+                v-if="showSviyButton"
+                class="flex items-center gap-3 mt-3"
+              >
+                <span class="text-sm opacity-60">Натисни стане Свій</span>
+                <button
+                  type="button"
+                  @click="toggleSviy"
+                  :class="['px-4 py-2 rounded font-bold text-sm transition-all', formData.isSviy ? 'bg-green-600 text-white' : 'bg-red-600 text-white']"
+                >Свій</button>
+              </div>
+
               <!-- Причина незастосування -->
               <div class="mt-2">
                 <label class="mb-1 block">Причина незастосування:</label>
@@ -770,19 +783,6 @@
                 placeholder="Стан справ на ОКІ"
                 maxlength="64"
               />
-            </div>
-
-            <!-- ── Кнопка "Свій" для певних типів цілей ── -->
-            <div
-              v-if="showSviyButton"
-              class="flex items-center gap-3 mt-3"
-            >
-              <span class="text-sm opacity-60">Натисни стане Свій</span>
-              <button
-                type="button"
-                @click="toggleSviy"
-                :class="['px-4 py-2 rounded font-bold text-sm transition-all', formData.isSviy ? 'bg-green-600 text-white' : 'bg-red-600 text-white']"
-              >Свій</button>
             </div>
 
             </template>
@@ -1841,8 +1841,7 @@
           const commentText = this.formData.comment && this.formData.comment.trim()
             ? this.formData.comment.trim()
             : '-';
-          const sviyText = this.formData.isSviy ? 'Свій ' : '';
-          text += `\nКоментар: ${sviyText}${commentText}`;
+          text += `\nКоментар: ${commentText}`;
 
           if (this.showRozxid) {
             const ammoLines = ammoSummary(this.formData.rozxid);
