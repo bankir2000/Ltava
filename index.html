@@ -785,6 +785,17 @@
               />
             </div>
 
+            <!-- Причина незнищення -->
+            <div v-if="formData.result === 'не знищено'" class="mt-3">
+              <label class="mb-1 block">Причина незнищення:</label>
+              <textarea
+                v-model="formData.notDestroyedReason"
+                rows="2"
+                placeholder="Напр.: відмова зброї"
+                class="w-full p-2 rounded"
+              ></textarea>
+            </div>
+
             </template>
           </div>
 
@@ -1135,6 +1146,7 @@
           detectionMode: '',
           detectionTarget: '',
           notUsedReason: '',
+          notDestroyedReason: '',
           isSviy: false,
           rozxid: [{ type: '', quantity: null }],
           viktorAmmo1: '',
@@ -1699,6 +1711,7 @@
             detectionMode: '',
             detectionTarget: '',
             notUsedReason: '',
+            notDestroyedReason: '',
             isSviy: false,
             rozxid: [{ type: '', quantity: null }],
             viktorAmmo1: '',
@@ -1837,6 +1850,13 @@
             .map(p => `${p.rank} ${p.pib}`)
             .join(', ');
           if (personnel) text += `, ${personnel}`;
+
+          if (this.formData.result === 'не знищено') {
+            const notDestroyedReasonText = (this.formData.notDestroyedReason || '').trim();
+            if (notDestroyedReasonText) {
+              text += `\nПричина незнищення: ${notDestroyedReasonText}`;
+            }
+          }
 
           const commentText = this.formData.comment && this.formData.comment.trim()
             ? this.formData.comment.trim()
