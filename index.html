@@ -338,7 +338,7 @@
     .action-badge--destroyed { background:#15803d; border-color:#14532d; box-shadow:0 2px 8px rgba(21,128,61,.45); }
     .action-badge--explosion { background:#b91c1c; border-color:#991b1b; box-shadow:0 2px 8px rgba(185,28,28,.45); }
 
-    /* ===== КНОПКИ ВИБОРУ ДІЇ ===== */
+    /* ===== КНОПКИ ВИБОРУ ДІЇ (перевикористовується для типу стрічки ДШК) ===== */
     .action-btn {
       width:100%; min-height:44px; border-radius:8px;
       font-size:14px; font-weight:700; color:#ffffff;
@@ -494,7 +494,7 @@
           </div>
 
           <!-- БЛОК 4: РЕЗУЛЬТАТ -->
-          <div class="form-section">
+          <div class="form-section" ref="resultBlock">
             <div class="section-title"><span class="section-icon">🎯</span> Результат</div>
 
             <div class="grid grid-cols-2 gap-2">
@@ -672,7 +672,7 @@
 
               <!-- Виявлено -->
               <label class="mb-1 block">Виявлено:</label>
-              <div class="grid grid-cols-1 gap-2">
+              <div class="grid grid-cols-3 gap-2">
                 <button
                   v-for="mode in detectionModes"
                   :key="mode.value"
@@ -723,15 +723,6 @@
                 v-else-if="formData.result === 'ЗНИЩЕНО'"
                 class="action-badge action-badge--destroyed"
               >✅ ЗНИЩЕНО</div>
-              <div v-else class="grid grid-cols-2 gap-2">
-                <button
-                  v-for="action in actions"
-                  :key="action"
-                  type="button"
-                  @click="formData.action = action"
-                  :class="['action-btn', formData.action === action ? 'action-btn--active' : '']"
-                >{{ action }}</button>
-              </div>
             </div>
 
             <!-- ── Вибух: А-, Д-, кількість, місце, стан ── -->
@@ -1099,6 +1090,15 @@
               <div v-if="datetimeError" class="copy-error-badge">⚠️ {{ datetimeError }}</div>
             </div>
 
+            <!-- Наступна ціль: швидкий частковий скид без перезавантаження сторінки -->
+            <button
+              type="button"
+              @click="nextTarget"
+              class="rounded w-full transition-all hover:opacity-90"
+              style="min-height:44px; padding:10px; font-weight:700; font-size:14px;
+                     background:transparent; border:2px dashed var(--border); color:var(--text-dim);"
+            >🎯 Наступна ціль <span style="font-weight:500; opacity:0.8;">(той самий екіпаж)</span></button>
+
           </div>
         </div>
       </form>
@@ -1369,8 +1369,6 @@
           { value: 'візуально',    label: '👁 візуально' },
           { value: 'Візуально та акустично не виявлено', label: '🚫 не виявлено' },
         ],
-
-        actions: ['обстріляно', 'знищено'],
 
         uavTypes: ['Shahed', 'Shahed (реактивний)', 'Гербера', 'Пародія', 'Ланцет', 'Бандероль', 'Невідомий'],
 
@@ -1682,22 +1680,27 @@
           }
         },
 
-        clearForm() {
-          const _now = new Date();
-          const _pad = n => String(n).padStart(2, '0');
-          const _utcDate = `${_now.getFullYear()}-${_pad(_now.getMonth() + 1)}-${_pad(_now.getDate())}`;
-          const _utcTime = `${_pad(_now.getHours())}:${_pad(_now.getMinutes())}`;
+        // Швидкий частковий скид для наступної цілі: зберігає екіпаж/
+        // розташування (підрозділ, позивний, Н.П., область, засіб, склад),
+        // скидає все, що стосується конкретної цілі, і одразу підставляє
+        // актуальний час — без перезавантаження сторінки.
+        nextTarget() {
+          const now = new Date();
+          const pad = n => String(n).padStart(2, '0');
+          const newDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+          const newTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+          // Ті самі типи набоїв (як і при відновленні з localStorage),
+          // але з чистою кількістю для нового запису.
+          const keepRozxidTypes = (this.formData.rozxid || [])
+            .map(item => item.type)
+            .filter(Boolean);
+
           this.formData = {
-            pidrozdil: '',
-            pozivniyPrefix: '',
-            pozivniy: '',
-            naseleniyPunkt: '',
-            oblast: '',
-            weapons: [{ name: '' }],
-            personnel: [{ rank: '', pib: '', onBch: false }],
-            date: _utcDate,
-            time: _utcTime,
-            datetime: this._buildDatetime(_utcDate, _utcTime),
+            ...this.formData,
+            date: newDate,
+            time: newTime,
+            datetime: this._buildDatetime(newDate, newTime),
             targetNumber: '',
             height: '',
             result: '',
@@ -1713,17 +1716,32 @@
             notUsedReason: '',
             notDestroyedReason: '',
             isSviy: false,
-            rozxid: [{ type: '', quantity: null }],
+            rozxid: keepRozxidTypes.length
+              ? keepRozxidTypes.map(t => ({ type: t, quantity: null }))
+              : [{ type: '', quantity: null }],
             viktorAmmo1: '',
             viktorAmmo2: '',
             viktorAmmo3: '',
             ak74Ammo: '',
+            ak74ExtraRozxid: [{ type: '', quantity: null }],
+            dshkAmmo: '',
+            dshkTape: '',
+            dshkExtraRozxid: [{ type: '', quantity: null }],
             explosionCount: '',
             explosionPlace: '',
             explosionStatus: '',
             comment: ''
           };
-          localStorage.removeItem('staticFormData');
+
+          this.smsEditText = '';
+          this.copySuccess = false;
+          this.datetimeError = '';
+
+          this.$nextTick(() => {
+            if (this.$refs.resultBlock) {
+              this.$refs.resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
         },
 
         buildText() {
@@ -2055,6 +2073,10 @@
           }
           const text = this.smsEditText || this.getOutputText();
           if (!text) return;
+          // Вібрація має бути СИНХРОННОЮ, одразу в обробнику кліку —
+          // інакше "дозвіл користувача" згасає, поки чекаємо clipboard-проміс,
+          // і браузер (особливо Chrome/Android) мовчки ігнорує виклик.
+          this._vibrate();
           navigator.clipboard.writeText(text).then(() => {
             this.copySuccess = true;
             setTimeout(() => { this.copySuccess = false; }, 2000);
@@ -2066,6 +2088,7 @@
           if (this.datetimeError) return;
           const text = this.smsEditText || this.getOutputText();
           if (!text) return;
+          this._vibrate();
           if (typeof navigator.share === 'function') {
             navigator.share({ text }).catch(() => {});
           } else {
@@ -2073,6 +2096,14 @@
               this.copySuccess = true;
               setTimeout(() => { this.copySuccess = false; }, 2000);
             });
+          }
+        },
+
+        // Коротка тактильна відповідь при натисканні (де підтримується).
+        // Патерн із двох коротких поштовхів помітніший за одинарний імпульс.
+        _vibrate() {
+          if (navigator.vibrate) {
+            navigator.vibrate([40, 30, 40]);
           }
         },
 
