@@ -353,6 +353,54 @@
     }
     body.dark .action-btn        { background:#334155; }
     body.dark .action-btn--active{ background:#0f172a; }
+
+    /* ===== КНОПКА ДОВІДКИ (чітко видима, не плутається з декоративними іконками) ===== */
+    .instructions-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 999px;
+      background: #2563eb; color: #ffffff;
+      border: none; font-weight: 700; font-size: 13px;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.4);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .instructions-btn:active { transform: scale(0.96); box-shadow: 0 1px 3px rgba(37,99,235,0.4); }
+    body.dark .instructions-btn { background: #3b82f6; box-shadow: 0 2px 6px rgba(59,130,246,0.5); }
+
+    /* ===== МОДАЛЬНЕ ВІКНО ІНСТРУКЦІЇ ===== */
+    .instructions-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.55);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .instructions-modal {
+      width: 100%; max-width: 640px;
+      max-height: 88vh;
+      border-radius: 16px 16px 0 0;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.35);
+    }
+    @media (min-width: 640px) {
+      .instructions-overlay { align-items: center; }
+      .instructions-modal   { border-radius: 16px; max-height: 85vh; }
+    }
+    .instructions-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; flex-shrink: 0;
+    }
+    .instructions-body {
+      padding: 14px 16px 24px; overflow-y: auto;
+    }
+    .instructions-body h3 {
+      font-size: 15px; font-weight: 700; margin: 18px 0 6px;
+      color: var(--text);
+    }
+    .instructions-body h3:first-of-type { margin-top: 4px; }
+    .instructions-body p { font-size: 14px; line-height: 1.5; margin: 0 0 6px; color: var(--text); }
+    .instructions-body .ins-lead { color: var(--text-dim); font-size: 13.5px; margin-bottom: 14px; }
+    .instructions-body ul { margin: 4px 0 6px 18px; padding: 0; }
+    .instructions-body li { font-size: 14px; line-height: 1.5; margin-bottom: 4px; color: var(--text); }
+    .instructions-body b { color: var(--text); }
   </style>
 </head>
 
@@ -365,8 +413,13 @@
       <form id="form" @submit.prevent>
         <div class="flex flex-col gap-1">
 
-          <!-- КНОПКА ОНОВЛЕННЯ -->
-          <div class="flex justify-end mb-1">
+          <!-- КНОПКИ ОНОВЛЕННЯ ТА ІНСТРУКЦІЇ -->
+          <div class="flex justify-between items-center mb-1">
+            <button
+              type="button"
+              @click="showInstructions = true"
+              class="instructions-btn"
+            ><span style="font-size:1.05rem;">❓</span> Довідка</button>
             <button
               type="button"
               @click="reloadPage"
@@ -1103,6 +1156,80 @@
         </div>
       </form>
     </div>
+
+    <!-- ===== МОДАЛЬНЕ ВІКНО: ІНСТРУКЦІЯ КОРИСТУВАЧА ===== -->
+    <div
+      v-if="showInstructions"
+      class="instructions-overlay"
+      @click.self="showInstructions = false"
+    >
+      <div class="instructions-modal" style="background:var(--surface); color:var(--text); border:1.5px solid var(--border);">
+        <div class="instructions-header" style="border-bottom:1.5px solid var(--border);">
+          <div class="font-bold text-lg">📖 Інструкція користувача</div>
+          <button
+            type="button"
+            @click="showInstructions = false"
+            style="background:transparent; border:none; font-size:1.4rem; cursor:pointer; opacity:0.6; line-height:1;"
+          >✕</button>
+        </div>
+
+        <div class="instructions-body">
+
+          <p class="ins-lead">Застосунок формує СМС-звіт про повітряну ціль у стандартизованому форматі для передачі на пункт управління (ПУ). Заповнюйте блоки згори вниз — форма сама показує лише ті поля, які потрібні для обраного результату.</p>
+
+          <h3>1. Блок «Хто»</h3>
+          <p>Оберіть <b>підрозділ</b>, впишіть <b>позивний</b> та додайте <b>засіб</b> (може бути декілька — кнопка «+»). Ці поля, а також Н.П. і область із блоку «Де/Коли», <b>зберігаються автоматично при кожній зміні</b> — окремо тиснути нічого не потрібно. Дані лишаються в пам'яті браузера й підставляться самі, коли ви відкриєте застосунок наступного разу.</p>
+
+          <h3>2. Блок «Де / Коли»</h3>
+          <p>Населений пункт, область, дата й час — час підставляється автоматично при завантаженні сторінки. Якщо форма відкрита давно і час застарів — скористайтесь кнопкою <b>«🎯 Наступна ціль»</b> внизу форми (див. пункт 7), вона оновить час миттєво, без перезавантаження сторінки.</p>
+
+          <h3>3. Блок «Результат» — головний вибір</h3>
+          <p>Від цієї кнопки залежить, які поля з'являться далі. Доки результат не обрано — решта форми прихована.</p>
+          <ul>
+            <li><b>не знищено</b> — по цілі відпрацювали, ціль не збита</li>
+            <li><b>ЗНИЩЕНО</b> — ціль знищено</li>
+            <li><b>не застосовувалась</b> — зброю не застосовували (ціль пролетіла повз, не виявлено тощо)</li>
+            <li><b>вибух</b> — зафіксовано вибух без прямого ураження засобом</li>
+          </ul>
+
+          <h3>4. Блок «Ціль»</h3>
+          <p><b>№ цілі</b> і <b>висота</b> — спільні для всіх результатів. Далі, залежно від обраного результату:</p>
+          <ul>
+            <li><b>не знищено / ЗНИЩЕНО</b> — заповніть «Опис» (А/К/Д, тип цілі, обставини).</li>
+            <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується).</li>
+            <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну.</li>
+            <li><b>вибух</b> — вкажіть кількість, місце та стан справ.</li>
+          </ul>
+
+          <h3>5. Блок «Розхід» — облік боєкомплекту</h3>
+          <p>З'являється для результатів «не знищено»/«ЗНИЩЕНО», якщо у блоці «Хто» обрано зброю. Форма поводиться по-різному залежно від типу зброї:</p>
+          <ul>
+            <li><b>Viktor MR-2 14.5, АК74 (5.45) або ДШК 12.7</b> — для них є фіксовані варіанти <b>стрічок</b>. Оберіть потрібну стрічку і впишіть <b>загальну кількість</b> витрачених набоїв для неї одним числом — розбивати по видах не потрібно.</li>
+            <li><b>Будь-яка інша зброя</b> — з'являється загальний блок «Розхід», де для <b>кожного виду набою окремо</b> потрібно додати рядок (кнопка «+»), обрати тип і вказати кількість саме цього виду.</li>
+          </ul>
+
+          <h3>6. Блок «Особовий склад»</h3>
+          <p>Заведіть <b>усіх бійців екіпажу</b> (кнопка «+» додає ще один рядок: звання + ПІБ). Чекбоксом <b>«БЧ»</b> позначте тих, хто саме перебував на бойовому чергуванні під час цієї події — у підсумковий текст СМС потраплять лише позначені «БЧ» бійці з заповненими званням і ПІБ; решта рядків просто ігноруються при формуванні тексту.</p>
+
+          <h3>7. Перегляд, копіювання та наступна ціль</h3>
+          <ul>
+            <li>Внизу форми — готовий текст СМС. Його можна відредагувати вручну прямо в полі перед відправкою.</li>
+            <li><b>«Скопіювати»</b> — копіює текст у буфер обміну (щоб вставити в месенджер).</li>
+            <li><b>«Поширити»</b> — відкриває системне меню «Поділитися» (якщо підтримується браузером).</li>
+            <li><b>«🎯 Наступна ціль»</b> — миттєво готує форму до нової цілі: скидає номер цілі, результат, А/К/Д/Н, розхід і причини, підставляє актуальний час — <b>але залишає</b> підрозділ, позивний, Н.П., область, засіб і склад (той самий екіпаж зазвичай працює по кількох цілях поспіль). Перезавантажувати сторінку для цього більше не потрібно.</li>
+          </ul>
+
+          <h3>💡 Поради</h3>
+          <ul>
+            <li>Поля, підсвічені кольором після заповнення, — це орієнтир, що дані збережено.</li>
+            <li>Смуга прогресу зверху форми показує, скільки полів ще залишилось заповнити.</li>
+            <li>🌙/☀️ у формі перемикає темну/світлу тему — обирайте зручнішу для очей вночі.</li>
+            <li>Якщо щось незрозуміло в конкретному полі — спробуйте його заповнити, форма підказує наступні кроки самим порядком блоків.</li>
+          </ul>
+
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ЛОГІКА VUE -->
@@ -1115,6 +1242,7 @@
 
       data: {
         copySuccess: false,
+        showInstructions: false,
         datetimeError: '',
         darkMode: false,
         smsEditText: '',
