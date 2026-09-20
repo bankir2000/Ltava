@@ -191,6 +191,25 @@
       color: #f87171;
     }
 
+    /* Обов'язкове поле не заповнене (блоки Хто / Де-Коли / Засіб) */
+    .required-error {
+      border: 2px solid #b91c1c !important;
+      border-left: 4px solid #b91c1c !important;
+      background: #fef2f2 !important;
+    }
+    body.dark .required-error {
+      background: #2d1515 !important;
+    }
+    .required-error-msg {
+      color: #b91c1c;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    body.dark .required-error-msg {
+      color: #f87171;
+    }
+
     /* Прогрес-смужка */
     .progress-bar-wrap {
       height: 5px;
@@ -434,14 +453,14 @@
           </div>
 
           <!-- БЛОК 1: ХТО -->
-          <div class="form-section">
+          <div class="form-section" ref="whoBlock">
             <div class="section-title"><span class="section-icon">👤</span> Хто</div>
 
             <div class="flex flex-col mb-3">
               <label class="mb-1">Підрозділ:</label>
               <select
                 v-model="formData.pidrozdil"
-                :class="['w-full p-2 rounded', formData.pidrozdil ? 'field-filled' : '']"
+                :class="['w-full p-2 rounded', pidrozdilInvalid ? 'required-error' : (formData.pidrozdil ? 'field-filled' : '')]"
               >
                 <option value="" disabled hidden>Оберіть зі списку</option>
                 <option v-for="unit in units" :key="unit" :value="unit">{{ unit }}</option>
@@ -453,7 +472,7 @@
               <div class="flex gap-2 w-full">
                 <select
                   v-model="formData.pozivniyPrefix"
-                  :class="['w-1/3 p-2 rounded', formData.pozivniyPrefix ? 'field-filled' : '']"
+                  :class="['w-1/3 p-2 rounded', pozivniyPrefixInvalid ? 'required-error' : (formData.pozivniyPrefix ? 'field-filled' : '')]"
                 >
                   <option value="" disabled hidden>Оберіть</option>
                   <option v-for="prefix in prefixes" :key="prefix" :value="prefix">{{ prefix }}</option>
@@ -461,17 +480,18 @@
                 <the-mask
                   type="text"
                   v-model="formData.pozivniy"
-                  :class="['w-2/3 p-2 rounded', formData.pozivniy ? 'field-filled' : '']"
+                  :class="['w-2/3 p-2 rounded', pozivniyInvalid ? 'required-error' : (formData.pozivniy ? 'field-filled' : '')]"
                   mask="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                   :tokens="hexTokens"
                   placeholder="Впишіть"
                 />
               </div>
             </div>
+            <div v-if="whoInvalid" class="required-error-msg">Заповніть підрозділ і позивний</div>
           </div>
 
           <!-- БЛОК 2: ДЕ / КОЛИ -->
-          <div class="form-section">
+          <div class="form-section" ref="whereWhenBlock">
             <div class="section-title"><span class="section-icon">📍</span> Де / Коли</div>
 
             <div class="flex gap-2 mb-3">
@@ -480,7 +500,7 @@
                 <the-mask
                   type="text"
                   v-model="formData.naseleniyPunkt"
-                  :class="['w-full p-2 rounded', formData.naseleniyPunkt ? 'field-filled' : '']"
+                  :class="['w-full p-2 rounded', naseleniyPunktInvalid ? 'required-error' : (formData.naseleniyPunkt ? 'field-filled' : '')]"
                   mask="BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
                   :tokens="hexTokens"
                   placeholder="Впишіть"
@@ -490,7 +510,7 @@
                 <label class="mb-1">Область:</label>
                 <select
                   v-model="formData.oblast"
-                  :class="['w-full p-2 rounded', formData.oblast ? 'field-filled' : '']"
+                  :class="['w-full p-2 rounded', oblastInvalid ? 'required-error' : (formData.oblast ? 'field-filled' : '')]"
                 >
                   <option value="" disabled hidden>Обл.</option>
                   <option v-for="region in regions" :key="region" :value="region">{{ region }}</option>
@@ -514,20 +534,21 @@
                 @input="datetimeError = ''"
                 @change="parseDatetime"
                 placeholder="дд.мм.рррр гг:хх"
-                :class="['w-full p-2 rounded', datetimeError ? 'datetime-error' : (formData.datetime ? 'field-filled' : '')]"
+                :class="['w-full p-2 rounded', (datetimeError || datetimeMissingInvalid) ? (datetimeError ? 'datetime-error' : 'required-error') : (formData.datetime ? 'field-filled' : '')]"
               />
               <div v-if="datetimeError" class="datetime-error-msg">{{ datetimeError }}</div>
             </div>
+            <div v-if="whereWhenInvalid" class="required-error-msg">Заповніть н.п., область і час виявлення</div>
           </div>
 
           <!-- БЛОК 3: ЗАСІБ -->
-          <div class="form-section">
+          <div class="form-section" ref="meansBlock">
             <div class="section-title"><span class="section-icon">🔫</span> Засіб</div>
             <div class="flex flex-col gap-2">
               <div v-for="(w, index) in formData.weapons" :key="index" class="flex gap-2 items-center">
                 <select
                   v-model="w.name"
-                  :class="['w-full p-2 rounded', w.name ? 'field-filled' : '']"
+                  :class="['w-full p-2 rounded', (meansInvalid && !w.name) ? 'required-error' : (w.name ? 'field-filled' : '')]"
                 >
                   <option value="" disabled hidden>Оберіть зі списку</option>
                   <option v-for="weaponOption in weapons" :key="weaponOption" :value="weaponOption">{{ weaponOption }}</option>
@@ -544,6 +565,7 @@
                 + Додати зброю
               </button>
             </div>
+            <div v-if="meansInvalid" class="required-error-msg">Оберіть хоча б один засіб</div>
           </div>
 
           <!-- БЛОК 4: РЕЗУЛЬТАТ -->
@@ -757,8 +779,9 @@
                   v-model="formData.notUsedReason"
                   rows="2"
                   placeholder="Напр.: далеко"
-                  class="w-full p-2 rounded"
+                  :class="['w-full p-2 rounded', notUsedReasonInvalid ? 'required-error' : '']"
                 ></textarea>
+                <div v-if="notUsedReasonInvalid" class="required-error-msg">Вкажіть причину незастосування</div>
               </div>
             </div>
 
@@ -836,8 +859,9 @@
                 v-model="formData.notDestroyedReason"
                 rows="2"
                 placeholder="Напр.: відмова зброї"
-                class="w-full p-2 rounded"
+                :class="['w-full p-2 rounded', notDestroyedReasonInvalid ? 'required-error' : '']"
               ></textarea>
+              <div v-if="notDestroyedReasonInvalid" class="required-error-msg">Вкажіть причину незнищення</div>
             </div>
 
             </template>
@@ -1244,6 +1268,7 @@
         copySuccess: false,
         showInstructions: false,
         datetimeError: '',
+        showValidation: false,
         darkMode: false,
         smsEditText: '',
         hexTokens: { 
@@ -1436,9 +1461,7 @@
           'із ВКК Canik M2 12.7',
           'із ВКК SAR 127 MT 12.7',
           'із НСВ Утьос 12.7',
-          //'із ВКК ДШК 12.7',
-          'із роботизованої турелі з ВКК Browning M2 12.7',
-          'із роботизованої турелі з ВКК Canik M2 12.7',
+          'із ВКК ДШК 12.7',
           'із ВКК КПВТ 14.5',
           'із ЗКУ-1(2) 14.5',
           'із ЗУ М-55 20мм',
@@ -1459,11 +1482,9 @@
           'із ЗРК DASH',
           'із ЗРК Raven',
           'із ЗРК Avanger',
-          'із ЗРК Оса',
+          'із ЗРК Оса АКМ',
           'із ЗРК CA-95',
-          'із ЗРК ITEL-1,5',
-          'із ЗРК RBS-70',
-          'із ЗРК Rapid Ranger'
+          'із ЗРК ITEL-1,5'
        ],
 
         ammoTypes: [
@@ -1545,6 +1566,31 @@
       },
 
       computed: {
+        // --- Валідація обов'язкових полів блоків "Хто", "Де/Коли", "Засіб" ---
+        // Підсвітка з'являється лише після першої спроби скопіювати/поділитись (showValidation),
+        // щоб не лякати користувача червоним одразу при відкритті форми.
+        pidrozdilInvalid() { return this.showValidation && !this.formData.pidrozdil; },
+        pozivniyPrefixInvalid() { return this.showValidation && !this.formData.pozivniyPrefix; },
+        pozivniyInvalid() { return this.showValidation && !this.formData.pozivniy; },
+        naseleniyPunktInvalid() { return this.showValidation && !this.formData.naseleniyPunkt; },
+        oblastInvalid() { return this.showValidation && !this.formData.oblast; },
+        datetimeMissingInvalid() { return this.showValidation && !this.formData.datetime; },
+        whoInvalid() {
+          return this.pidrozdilInvalid || this.pozivniyPrefixInvalid || this.pozivniyInvalid;
+        },
+        whereWhenInvalid() {
+          return this.naseleniyPunktInvalid || this.oblastInvalid || this.datetimeMissingInvalid;
+        },
+        meansInvalid() {
+          return this.showValidation && !this.formData.weapons.some(w => w.name);
+        },
+        notUsedReasonInvalid() {
+          return this.showValidation && this.formData.result === 'не застосовувалась' && !this.formData.notUsedReason.trim();
+        },
+        notDestroyedReasonInvalid() {
+          return this.showValidation && this.formData.result === 'не знищено' && !this.formData.notDestroyedReason.trim();
+        },
+
         smsPreviewText() {
           if (!this.formData.datetime || this.datetimeError) return null;
           return this.getOutputText();
@@ -2210,16 +2256,41 @@
           window.location.reload();
         },
 
+        // Перевіряє обов'язкові поля блоків "Хто", "Де/Коли", "Засіб".
+        // Якщо чогось не вистачає — вмикає підсвітку (через showValidation),
+        // трясе кнопку і прокручує до першого незаповненого блоку.
+        validateRequiredBlocks() {
+          this.showValidation = true;
+          if (!this.whoInvalid && !this.whereWhenInvalid && !this.meansInvalid && !this.notUsedReasonInvalid && !this.notDestroyedReasonInvalid) {
+            return true;
+          }
+          this._shakeBtn('.btn-copy');
+          this.$nextTick(() => {
+            const target = this.whoInvalid
+              ? this.$refs.whoBlock
+              : (this.whereWhenInvalid
+                ? this.$refs.whereWhenBlock
+                : (this.meansInvalid ? this.$refs.meansBlock : this.$refs.resultBlock));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          return false;
+        },
+
+        // Спільна анімація "трясіння" кнопки при помилці валідації.
+        _shakeBtn(selector) {
+          const btn = this.$el.querySelector(selector);
+          if (!btn) return;
+          btn.classList.remove('btn-shake');
+          void btn.offsetWidth;
+          btn.classList.add('btn-shake');
+          setTimeout(() => btn.classList.remove('btn-shake'), 600);
+        },
+
         copyData() {
+          if (!this.validateRequiredBlocks()) return;
           this.parseDatetime();
           if (this.datetimeError) {
-            this.$el.querySelector('.btn-copy').classList.remove('btn-shake');
-            void this.$el.querySelector('.btn-copy').offsetWidth;
-            this.$el.querySelector('.btn-copy').classList.add('btn-shake');
-            setTimeout(() => {
-              const btn = this.$el.querySelector('.btn-copy');
-              if (btn) btn.classList.remove('btn-shake');
-            }, 600);
+            this._shakeBtn('.btn-copy');
             return;
           }
           const text = this.smsEditText || this.getOutputText();
@@ -2235,6 +2306,7 @@
         },
 
         shareData() {
+          if (!this.validateRequiredBlocks()) return;
           this.parseDatetime();
           if (this.datetimeError) return;
           const text = this.smsEditText || this.getOutputText();
