@@ -783,6 +783,10 @@
                 ></textarea>
                 <div v-if="notUsedReasonInvalid" class="required-error-msg">Вкажіть причину незастосування</div>
                 <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                  <input type="checkbox" v-model="formData.outOfRange" class="w-5 h-5" />
+                  <span>Поза зоною ураження.</span>
+                </label>
+                <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
                   <input type="checkbox" v-model="formData.videoSearch" class="w-5 h-5" />
                   <span>Відео пошуку присутнє.</span>
                 </label>
@@ -1225,7 +1229,7 @@
           <ul>
             <li><b>не знищено / ЗНИЩЕНО</b> — заповніть «Опис» (А/К/Д, тип цілі, обставини).</li>
             <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується).</li>
-            <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну. Нижче є галочка <b>«Відео пошуку присутнє.»</b> — при її виборі ця фраза додається в кінець причини в СМС.</li>
+            <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну. Нижче є галочка <b>«Відео пошуку присутнє.»</b> — при її виборі ця фраза додається в кінець причини в СМС. Так само працює галочка <b>«Поза зоною ураження.»</b> (вона йде першою, далі — відео).</li>
             <li><b>вибух</b> — вкажіть кількість, місце та стан справ.</li>
           </ul>
 
@@ -1306,6 +1310,7 @@
           notDestroyedReason: '',
           isSviy: false,
           videoSearch: false,
+          outOfRange: false,
           rozxid: [{ type: '', quantity: null }],
           viktorAmmo1: '',
           viktorAmmo2: '',
@@ -1919,6 +1924,7 @@
             notDestroyedReason: '',
             isSviy: false,
             videoSearch: false,
+            outOfRange: false,
             rozxid: keepRozxidTypes.length
               ? keepRozxidTypes.map(t => ({ type: t, quantity: null }))
               : [{ type: '', quantity: null }],
@@ -2237,11 +2243,13 @@
           let sms = `${formattedDate} час ${this.formData.time || ''}\nЦіль ${targetNumberDisplay}\n${line3}`;
 
           let reasonText = (this.formData.notUsedReason || '').trim();
-          if (this.formData.videoSearch) {
-            const VIDEO_TEXT = 'Відео пошуку присутнє.';
+          const extraPhrases = [];
+          if (this.formData.outOfRange)  extraPhrases.push('Поза зоною ураження.');
+          if (this.formData.videoSearch) extraPhrases.push('Відео пошуку присутнє.');
+          extraPhrases.forEach(phrase => {
             if (reasonText && !/[.!?…]$/.test(reasonText)) reasonText += '.';
-            reasonText = reasonText ? `${reasonText} ${VIDEO_TEXT}` : VIDEO_TEXT;
-          }
+            reasonText = reasonText ? `${reasonText} ${phrase}` : phrase;
+          });
           if (reasonText) {
             sms += `\nПричина незастосування: ${reasonText}`;
           }
