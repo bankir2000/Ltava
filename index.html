@@ -1599,7 +1599,10 @@
           return this.showValidation && !this.formData.weapons.some(w => w.name);
         },
         notUsedReasonInvalid() {
-          return this.showValidation && this.formData.result === 'не застосовувалась' && !this.formData.notUsedReason.trim();
+          // Якщо позначено "Поза зоною ураження" — причину вважаємо заповненою,
+          // навіть якщо текстове поле порожнє (фраза все одно підставиться в текст звіту).
+          return this.showValidation && this.formData.result === 'не застосовувалась'
+            && !this.formData.notUsedReason.trim() && !this.formData.outOfRange;
         },
         notDestroyedReasonInvalid() {
           return this.showValidation && this.formData.result === 'не знищено' && !this.formData.notDestroyedReason.trim();
