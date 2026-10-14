@@ -200,6 +200,8 @@
     body.dark .required-error {
       background: #2d1515 !important;
     }
+    .req-star { color: #b91c1c; font-weight: 800; margin-left: 2px; }
+    body.dark .req-star { color: #f87171; }
     .required-error-msg {
       color: #b91c1c;
       font-size: 12px;
@@ -451,13 +453,14 @@
           <div class="progress-bar-wrap">
             <div class="progress-bar-fill" :style="{width: formProgress + '%'}"></div>
           </div>
+          <div class="text-xs mb-2" style="color:var(--text-dim)"><span class="req-star">*</span> — обов'язкове поле</div>
 
           <!-- БЛОК 1: ХТО -->
           <div class="form-section" ref="whoBlock">
             <div class="section-title"><span class="section-icon">👤</span> Хто</div>
 
             <div class="flex flex-col mb-3">
-              <label class="mb-1">Підрозділ:</label>
+              <label class="mb-1">Підрозділ:<span class="req-star">*</span></label>
               <select
                 v-model="formData.pidrozdil"
                 :class="['w-full p-2 rounded', pidrozdilInvalid ? 'required-error' : (formData.pidrozdil ? 'field-filled' : '')]"
@@ -468,7 +471,7 @@
             </div>
 
             <div class="flex flex-col mb-1">
-              <label class="mb-1">Позивний:</label>
+              <label class="mb-1">Позивний:<span class="req-star">*</span></label>
               <div class="flex gap-2 w-full">
                 <select
                   v-model="formData.pozivniyPrefix"
@@ -496,7 +499,7 @@
 
             <div class="flex gap-2 mb-3">
               <div class="flex flex-col flex-1">
-                <label class="mb-1">Н.П.:</label>
+                <label class="mb-1">Н.П.:<span class="req-star">*</span></label>
                 <the-mask
                   type="text"
                   v-model="formData.naseleniyPunkt"
@@ -507,7 +510,7 @@
                 />
               </div>
               <div class="flex flex-col w-2/5">
-                <label class="mb-1">Область:</label>
+                <label class="mb-1">Область:<span class="req-star">*</span></label>
                 <select
                   v-model="formData.oblast"
                   :class="['w-full p-2 rounded', oblastInvalid ? 'required-error' : (formData.oblast ? 'field-filled' : '')]"
@@ -520,7 +523,7 @@
 
             <div class="flex flex-col mb-1">
               <div class="flex items-center justify-between mb-1">
-                <label>⏱ Час виявлення:</label>
+                <label>⏱ Час виявлення:<span class="req-star">*</span></label>
                 <div class="flex gap-2">
                   <button type="button" @click="adjustTime(-1)"
                     class="time-btn hover:opacity-90 text-white rounded" style="background:var(--cyan)">−1 хв.</button>
@@ -543,7 +546,7 @@
 
           <!-- БЛОК 3: ЗАСІБ -->
           <div class="form-section" ref="meansBlock">
-            <div class="section-title"><span class="section-icon">🔫</span> Засіб</div>
+            <div class="section-title"><span class="section-icon">🔫</span> Засіб<span class="req-star">*</span></div>
             <div class="flex flex-col gap-2">
               <div v-for="(w, index) in formData.weapons" :key="index" class="flex gap-2 items-center">
                 <select
@@ -585,7 +588,7 @@
           </div>
 
           <!-- БЛОК 5: ЦІЛЬ -->
-          <div class="form-section">
+          <div class="form-section" ref="targetBlock">
             <div class="section-title"><span class="section-icon">🎯</span> Ціль</div>
 
             <div v-if="!formData.result" class="text-sm italic opacity-70 py-2">
@@ -602,9 +605,10 @@
                 <span class="text-xs mt-1 opacity-60">{{ formData.targetNumber ? '' : 'якщо порожньо → б/н' }}</span>
               </div>
               <div class="flex flex-col w-1/2">
-                <label class="mb-1">Висота (м):</label>
+                <label class="mb-1">Висота (м):<span v-if="formData.result === 'не знищено' || formData.result === 'ЗНИЩЕНО'" class="req-star">*</span></label>
                 <input type="number" v-model="formData.height" inputmode="numeric" placeholder="0" min="0"
-                  :class="['w-full p-2 rounded', formData.height ? 'field-filled' : '']" />
+                  :class="['w-full p-2 rounded', heightInvalid ? 'required-error' : (formData.height ? 'field-filled' : '')]" />
+                <div v-if="heightInvalid" class="required-error-msg">Вкажіть висоту (не 0)</div>
               </div>
             </div>
 
@@ -774,7 +778,7 @@
 
               <!-- Причина незастосування -->
               <div class="mt-2">
-                <label class="mb-1 block">Причина незастосування:</label>
+                <label class="mb-1 block">Причина незастосування:<span class="req-star">*</span></label>
                 <textarea
                   v-model="formData.notUsedReason"
                   rows="2"
@@ -862,7 +866,7 @@
 
             <!-- Причина незнищення -->
             <div v-if="formData.result === 'не знищено'" class="mt-3">
-              <label class="mb-1 block">Причина незнищення:</label>
+              <label class="mb-1 block">Причина незнищення:<span class="req-star">*</span></label>
               <textarea
                 v-model="formData.notDestroyedReason"
                 rows="2"
@@ -1225,7 +1229,7 @@
           </ul>
 
           <h3>4. Блок «Ціль»</h3>
-          <p><b>№ цілі</b> і <b>висота</b> — спільні для всіх результатів. Далі, залежно від обраного результату:</p>
+          <p><b>№ цілі</b> і <b>висота</b> — спільні для всіх результатів. Для <b>«не знищено»</b> і <b>«ЗНИЩЕНО»</b> висота <b>обов'язкова і не може дорівнювати нулю</b> — інакше звіт не скопіюється. Далі, залежно від обраного результату:</p>
           <ul>
             <li><b>не знищено / ЗНИЩЕНО</b> — заповніть «Опис» (А/К/Д, тип цілі, обставини).</li>
             <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується).</li>
@@ -1253,6 +1257,7 @@
 
           <h3>💡 Поради</h3>
           <ul>
+            <li>Поля, позначені червоною зірочкою <b style="color:#b91c1c">*</b>, обов'язкові. Висота, причина незнищення й причина незастосування стають обов'язковими лише для відповідного результату.</li>
             <li>Поля, підсвічені кольором після заповнення, — це орієнтир, що дані збережено.</li>
             <li>Смуга прогресу зверху форми показує, скільки полів ще залишилось заповнити.</li>
             <li>🌙/☀️ у формі перемикає темну/світлу тему — обирайте зручнішу для очей вночі.</li>
@@ -1603,6 +1608,13 @@
           // навіть якщо текстове поле порожнє (фраза все одно підставиться в текст звіту).
           return this.showValidation && this.formData.result === 'не застосовувалась'
             && !this.formData.notUsedReason.trim() && !this.formData.outOfRange;
+        },
+        heightInvalid() {
+          // При "не знищено" / "ЗНИЩЕНО" висота обов'язкова і не може бути 0.
+          // Для "не застосовувалась" та "вибух" вимога не діє.
+          if (!this.showValidation) return false;
+          if (this.formData.result !== 'не знищено' && this.formData.result !== 'ЗНИЩЕНО') return false;
+          return !(Number(this.formData.height) > 0);
         },
         notDestroyedReasonInvalid() {
           return this.showValidation && this.formData.result === 'не знищено' && !this.formData.notDestroyedReason.trim();
@@ -2287,7 +2299,7 @@
         // трясе кнопку і прокручує до першого незаповненого блоку.
         validateRequiredBlocks() {
           this.showValidation = true;
-          if (!this.whoInvalid && !this.whereWhenInvalid && !this.meansInvalid && !this.notUsedReasonInvalid && !this.notDestroyedReasonInvalid) {
+          if (!this.whoInvalid && !this.whereWhenInvalid && !this.meansInvalid && !this.notUsedReasonInvalid && !this.notDestroyedReasonInvalid && !this.heightInvalid) {
             return true;
           }
           this._shakeBtn('.btn-copy');
@@ -2296,7 +2308,9 @@
               ? this.$refs.whoBlock
               : (this.whereWhenInvalid
                 ? this.$refs.whereWhenBlock
-                : (this.meansInvalid ? this.$refs.meansBlock : this.$refs.resultBlock));
+                : (this.meansInvalid
+                  ? this.$refs.meansBlock
+                  : (this.heightInvalid ? this.$refs.targetBlock : this.$refs.resultBlock)));
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
           });
           return false;
