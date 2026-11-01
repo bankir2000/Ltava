@@ -882,6 +882,10 @@
                 :class="['w-full p-2 rounded', notDestroyedReasonInvalid ? 'required-error' : '']"
               ></textarea>
               <div v-if="notDestroyedReasonInvalid" class="required-error-msg">Вкажіть причину незнищення</div>
+              <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                <input type="checkbox" v-model="formData.leftKillZone" @change="syncNotDestroyedPhrases" class="w-5 h-5" />
+                <span>Вийшов із зони ураження.</span>
+              </label>
             </div>
 
             </template>
@@ -1240,7 +1244,7 @@
           <p><b>№ цілі</b> і <b>висота</b> — спільні для всіх результатів. Для <b>«не знищено»</b> і <b>«ЗНИЩЕНО»</b> висота <b>обов'язкова і не може дорівнювати нулю</b> — інакше звіт не скопіюється. Далі, залежно від обраного результату:</p>
           <ul>
             <li><b>не знищено / ЗНИЩЕНО</b> — заповніть «Опис» (А/К/Д, тип цілі, обставини).</li>
-            <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується).</li>
+            <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується). Під полем є готова фраза-галочка <b>«Вийшов із зони ураження.»</b> — при виборі вона вставляється в поле причини, при знятті — прибирається.</li>
             <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну. Нижче є готові фрази-галочки: <b>«Видимість обмежена.»</b>, <b>«Відео пошуку присутнє.»</b>, <b>«Візуально не виявлено.»</b>, <b>«Поза зоною ураження.»</b> — при виборі кожна одразу вставляється в поле «Причина незастосування» (в кінець тексту, в цьому ж алфавітному порядку), а при знятті галочки — прибирається. Текст можна редагувати вручну.</li>
             <li><b>вибух</b> — вкажіть кількість, місце та стан справ.</li>
           </ul>
@@ -1321,6 +1325,7 @@
           detectionTarget: '',
           notUsedReason: '',
           notDestroyedReason: '',
+          leftKillZone: false,
           isSviy: false,
           videoSearch: false,
           outOfRange: false,
@@ -1953,6 +1958,7 @@
             detectionTarget: '',
             notUsedReason: '',
             notDestroyedReason: '',
+            leftKillZone: false,
             isSviy: false,
             videoSearch: false,
             outOfRange: false,
@@ -2397,6 +2403,23 @@
             result = result ? `${result} ${ph.text}` : ph.text;
           });
           this.formData.notUsedReason = result;
+        },
+
+        // Вставляє/прибирає готову фразу (галочку) у полі "Причина незнищення".
+        // Фрази йдуть в кінці тексту в алфавітному порядку; ручний текст лишається на початку.
+        syncNotDestroyedPhrases() {
+          const phrases = [
+            { on: this.formData.leftKillZone, text: 'Вийшов із зони ураження.' }
+          ];
+          let base = this.formData.notDestroyedReason || '';
+          phrases.forEach(ph => { base = base.split(ph.text).join(' '); });
+          base = base.replace(/[ \t]{2,}/g, ' ').trim();
+          let result = base;
+          phrases.filter(ph => ph.on).forEach(ph => {
+            if (result && !/[.!?…]$/.test(result)) result += '.';
+            result = result ? `${result} ${ph.text}` : ph.text;
+          });
+          this.formData.notDestroyedReason = result;
         },
 
         // Перемикає позначку "Свій" і одразу відображає/прибирає її
