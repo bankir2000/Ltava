@@ -1,5 +1,5 @@
 // Service Worker — кешує тільки статику, index.html завжди свіжий
-const CACHE = 'ltava-static-v1';
+const CACHE = 'ltava-static-v2';
 const BASE = '/Ltava/';
 
 // Тільки зовнішні бібліотеки — вони не змінюються
@@ -9,6 +9,10 @@ const STATIC = [
   'https://unpkg.com/vue-the-mask@0.11.1/dist/vue-the-mask.js',
   BASE + 'icon-192.png',
   BASE + 'icon-512.png',
+  BASE + 'icon-maskable-192.png',
+  BASE + 'icon-maskable-512.png',
+  BASE + 'apple-touch-icon.png',
+  BASE + 'favicon.ico',
   BASE + 'manifest.json',
 ];
 
