@@ -77,7 +77,10 @@
     }
 
     /* Плавний перехід між темами */
-    body, body * {
+    /* Active only for a moment while the theme is toggled (see toggleTheme).
+       A permanent global transition makes native <select> popups fade in
+       semi-transparent in the installed Android app. */
+    body.theme-anim, body.theme-anim * {
       transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     }
     /* Але не кнопки результату — вони мають свої кольори */
@@ -111,7 +114,11 @@
       border: 1.5px solid var(--border) !important;
       border-radius: 6px;
     }
-    select option { color: var(--text); background: var(--surface); }
+    select, select option, select optgroup {
+      transition: none !important;
+      opacity: 1 !important;
+    }
+    select option { color: var(--text); background-color: var(--surface) !important; }
     button { min-height: 44px; font-size: 15px; font-weight: 600; }
 
     textarea { resize: vertical; }
@@ -1934,7 +1941,9 @@
 
         toggleTheme() {
           this.darkMode = !this.darkMode;
+          document.body.classList.add('theme-anim');
           document.body.classList.toggle('dark', this.darkMode);
+          setTimeout(() => document.body.classList.remove('theme-anim'), 300);
           localStorage.setItem('darkMode', this.darkMode ? '1' : '0');
         },
 
