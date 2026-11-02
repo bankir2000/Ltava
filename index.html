@@ -2212,16 +2212,20 @@
             .join(', ');
           if (personnel) text += `, ${personnel}`;
 
+          // Для "не знищено" причина незнищення йде в рядок "Коментар"
+          // (після ручного коментаря, якщо він є).
+          const commentParts = [];
+          let manualComment = (this.formData.comment || '').trim();
+          if (manualComment) {
+            // Після ручного коментаря ставимо крапку (якщо її там ще немає)
+            if (!/[.!?…]$/.test(manualComment)) manualComment += '.';
+            commentParts.push(manualComment);
+          }
           if (this.formData.result === 'не знищено') {
             const notDestroyedReasonText = (this.formData.notDestroyedReason || '').trim();
-            if (notDestroyedReasonText) {
-              text += `\nПричина незнищення: ${notDestroyedReasonText}`;
-            }
+            if (notDestroyedReasonText) commentParts.push(`Причина незнищення: ${notDestroyedReasonText}`);
           }
-
-          const commentText = this.formData.comment && this.formData.comment.trim()
-            ? this.formData.comment.trim()
-            : '-';
+          const commentText = commentParts.length ? commentParts.join(' ') : '-';
           text += `\nКоментар: ${commentText}`;
 
           if (this.showRozxid) {
