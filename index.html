@@ -9,6 +9,15 @@
   <link rel="manifest" href="/Ltava/manifest.json">
   <meta name="theme-color" content="#f0f4f8">
   <meta name="mobile-web-app-capable" content="yes">
+  <script>
+    // Capture install prompt early: it may fire before Vue is created
+    window.__installPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      window.__installPrompt = e;
+      window.dispatchEvent(new Event('install-available'));
+    });
+  </script>
 
   <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -398,6 +407,8 @@
     }
     .instructions-btn:active { transform: scale(0.96); box-shadow: 0 1px 3px rgba(37,99,235,0.4); }
     body.dark .instructions-btn { background: #3b82f6; box-shadow: 0 2px 6px rgba(59,130,246,0.5); }
+    .install-btn { background: #16a34a; box-shadow: 0 2px 6px rgba(22,163,74,0.4); }
+    body.dark .install-btn { background: #22c55e; box-shadow: 0 2px 6px rgba(34,197,94,0.5); }
 
     /* ===== МОДАЛЬНЕ ВІКНО ІНСТРУКЦІЇ ===== */
     .instructions-overlay {
@@ -448,11 +459,19 @@
 
           <!-- КНОПКИ ОНОВЛЕННЯ ТА ІНСТРУКЦІЇ -->
           <div class="flex justify-between items-center mb-1">
-            <button
-              type="button"
-              @click="showInstructions = true"
-              class="instructions-btn"
-            ><span style="font-size:1.05rem;">❓</span> Довідка</button>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="showInstructions = true"
+                class="instructions-btn"
+              ><span style="font-size:1.05rem;">❓</span> Довідка</button>
+              <button
+                v-if="canShowInstall"
+                type="button"
+                @click="installApp"
+                class="instructions-btn install-btn"
+              ><span style="font-size:1.05rem;">📲</span> Встановити</button>
+            </div>
             <button
               type="button"
               @click="reloadPage"
@@ -1304,6 +1323,9 @@
       data: {
         copySuccess: false,
         showInstructions: false,
+        installPrompt: null,
+        isInstalled: false,
+        isIos: false,
         datetimeError: '',
         showValidation: false,
         darkMode: false,
@@ -1615,6 +1637,11 @@
       },
 
       computed: {
+        // Show only when not installed and install is possible (native prompt or iOS manual)
+        canShowInstall() {
+          return !this.isInstalled && (!!this.installPrompt || this.isIos);
+        },
+
         // --- Валідація обов'язкових полів блоків "Хто", "Де/Коли", "Засіб" ---
         // Підсвітка з'являється лише після першої спроби скопіювати/поділитись (showValidation),
         // щоб не лякати користувача червоним одразу при відкритті форми.
@@ -1717,6 +1744,8 @@
       },
 
       created() {
+        this._initInstall();
+
         // Відновлення теми
         const savedTheme = localStorage.getItem('darkMode');
         if (savedTheme === '1') {
@@ -1808,6 +1837,51 @@
       },
 
       methods: {
+        // Detects whether the app already runs as an installed PWA
+        _isStandalone() {
+          return window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+        },
+
+        // Wires up install button state (Chrome/Edge/Android + iOS fallback)
+        _initInstall() {
+          this.isInstalled = this._isStandalone();
+          this.isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          this.installPrompt = window.__installPrompt;
+
+          window.addEventListener('install-available', () => {
+            this.installPrompt = window.__installPrompt;
+          });
+          window.addEventListener('appinstalled', () => {
+            this.isInstalled = true;
+            this.installPrompt = null;
+            window.__installPrompt = null;
+          });
+          window.matchMedia('(display-mode: standalone)').addEventListener('change', e => {
+            if (e.matches) this.isInstalled = true;
+          });
+        },
+
+        // Triggers the native install dialog (or shows iOS instructions)
+        async installApp() {
+          if (this.installPrompt) {
+            try {
+              this.installPrompt.prompt();
+              const { outcome } = await this.installPrompt.userChoice;
+              if (outcome === 'accepted') this.isInstalled = true;
+            } catch (err) {
+              console.warn('Install prompt error:', err);
+            } finally {
+              this.installPrompt = null;
+              window.__installPrompt = null;
+            }
+            return;
+          }
+          if (this.isIos) {
+            alert('Щоб встановити: натисніть «Поділитися» (іконка ⬆️) у Safari → «На початковий екран».');
+          }
+        },
+
         // Будує рядок "дд.мм.рррр гг:хх" з внутрішніх полів date/time
         _buildDatetime(dateStr, timeStr) {
           if (!dateStr) return '';
