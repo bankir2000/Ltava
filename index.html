@@ -832,8 +832,8 @@
                   <input type="checkbox" v-model="formData.videoSearch" @change="syncReasonPhrases" class="w-5 h-5" />
                   <span>Відео пошуку присутнє.</span>
                 </label>
-                <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                  <input type="checkbox" v-model="formData.visuallyNotDetected" @change="syncReasonPhrases" class="w-5 h-5" />
+                <label class="flex items-center gap-2 mt-2 select-none" :class="visualCheckboxLocked ? 'opacity-50' : 'cursor-pointer'">
+                  <input type="checkbox" v-model="formData.visuallyNotDetected" :disabled="visualCheckboxLocked" @change="syncReasonPhrases" class="w-5 h-5" />
                   <span>Візуально не виявлено.</span>
                 </label>
                 <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
@@ -1730,6 +1730,14 @@
         showViktorAmmo() {
           return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
+        // Галочка "Візуально не виявлено." недоступна, якщо обрано "візуально" або "не виявлено"
+        visualCheckboxLocked() {
+          return this.isNotDetected || this.formData.detectionMode === 'візуально';
+        },
+        // Обрано "не виявлено" (візуально та акустично) — галочка "Візуально не виявлено." зайва
+        isNotDetected() {
+          return this.formData.detectionMode === 'Візуально та акустично не виявлено';
+        },
         // ТИМЧАСОВО: для зброї 5.45 доступні лише ці два набої
         ak74AmmoTypes() {
           return ['Набій 5,45х39 мм ПС', 'Набій 5,45х39 мм ТЗ'];
@@ -2567,16 +2575,37 @@
         selectDetectionMode(value) {
           const NOT_DETECTED = 'Візуально та акустично не виявлено';
           this.formData.detectionMode = value;
+          const current = (this.formData.notUsedReason || '').trim();
+          const hasPhrase = current.includes(NOT_DETECTED);
+
           if (value === NOT_DETECTED) {
-            // Автозаповнення причини лише якщо поле ще порожнє
-            // (ручні правки користувача не затираються).
-            if (!this.formData.notUsedReason.trim()) {
-              this.formData.notUsedReason = NOT_DETECTED;
+            // Додаємо фразу на початок поля навіть якщо там уже є текст
+            // (галочки, "Свій", ручний текст) — інакше "не виявлено" взагалі
+            // не потрапляло б у повідомлення.
+            if (!hasPhrase) {
+              this.formData.notUsedReason = current
+                ? `${NOT_DETECTED}. ${current}`
+                : NOT_DETECTED;
             }
-          } else if (this.formData.notUsedReason.trim() === NOT_DETECTED) {
+            // Галочка "Візуально не виявлено." дублює цю фразу — знімаємо її
+            if (this.formData.visuallyNotDetected) {
+              this.formData.visuallyNotDetected = false;
+              this.syncReasonPhrases();
+            }
+          } else if (hasPhrase) {
             // Користувач передумав і обрав "акустично"/"візуально" —
-            // прибираємо автопідставлену фразу, якщо вона не була відредагована вручну.
-            this.formData.notUsedReason = '';
+            // прибираємо фразу, решту тексту лишаємо.
+            this.formData.notUsedReason = current
+              .split(NOT_DETECTED).join('')
+              .replace(/^[\s.,]+/, '')
+              .replace(/[ \t]{2,}/g, ' ')
+              .trim();
+          }
+
+          // "візуально" суперечить фразі "Візуально не виявлено." — знімаємо галочку
+          if (value === 'візуально' && this.formData.visuallyNotDetected) {
+            this.formData.visuallyNotDetected = false;
+            this.syncReasonPhrases();
           }
         },
 
