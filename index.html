@@ -837,6 +837,10 @@
                   <span>Візуально не виявлено.</span>
                 </label>
                 <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                  <input type="checkbox" v-model="formData.dataFromProgram" @change="syncReasonPhrases" class="w-5 h-5" />
+                  <span>Дані взяті з програми.</span>
+                </label>
+                <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
                   <input type="checkbox" v-model="formData.outOfRange" @change="syncReasonPhrases" class="w-5 h-5" />
                   <span>Поза зоною ураження.</span>
                 </label>
@@ -1009,7 +1013,8 @@
 
           <!-- АК74 БЛОК РОЗХОДУ -->
           <div v-if="showAk74" class="flex flex-col gap-3 mb-2">
-            <div class="flex flex-col gap-1">
+            <!-- ТИМЧАСОВО ПРИХОВАНО: стрічка АК74 - 5.45мм 1ТЗ-2ПС (щоб повернути — приберіть v-if="false") -->
+            <div v-if="false" class="flex flex-col gap-1">
               <label class="text-sm font-semibold" style="color:var(--text)">АК74 - 5.45мм 1ТЗ-2ПС</label>
               <input
                 type="tel"
@@ -1029,7 +1034,7 @@
                     :class="['w-full p-2 rounded', item.type ? 'text-gray-900' : 'text-gray-400']"
                   >
                     <option value="" disabled hidden>Оберіть зі списку</option>
-                    <option v-for="ammo in ammoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
+                    <option v-for="ammo in ak74AmmoTypes" :key="ammo" :value="ammo">{{ ammo }}</option>
                   </select>
                   <div class="flex w-full gap-2">
                     <input
@@ -1283,7 +1288,7 @@
           <ul>
             <li><b>не знищено / ЗНИЩЕНО</b> — заповніть «Опис» (А/К/Д, тип цілі, обставини).</li>
             <li><b>не знищено</b> — додатково з'являється поле <b>«Причина незнищення:»</b> — вкажіть, чому ціль не вдалось збити (для «ЗНИЩЕНО» це поле не потрібне й не показується). Під полем є готова фраза-галочка <b>«Вийшов із зони ураження.»</b> — при виборі вона вставляється в поле причини, при знятті — прибирається.</li>
-            <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну. Нижче є готові фрази-галочки: <b>«Видимість обмежена.»</b>, <b>«Відео пошуку присутнє.»</b>, <b>«Візуально не виявлено.»</b>, <b>«Поза зоною ураження.»</b> — при виборі кожна одразу вставляється в поле «Причина незастосування» (в кінець тексту, в цьому ж алфавітному порядку), а при знятті галочки — прибирається. Текст можна редагувати вручну.</li>
+            <li><b>не застосовувалась</b> — оберіть спосіб виявлення (акустично / візуально / не виявлено). Поле <b>«Причина незастосування:»</b> — обов'язкове до заповнення в будь-якому випадку. Якщо натиснути «не виявлено» — воно підставиться автоматично фразою «Візуально та акустично не виявлено», але текст можна доповнити чи змінити вручну. Нижче є готові фрази-галочки: <b>«Видимість обмежена.»</b>, <b>«Відео пошуку присутнє.»</b>, <b>«Візуально не виявлено.»</b>, <b>«Дані взяті з програми.»</b>, <b>«Поза зоною ураження.»</b> — при виборі кожна одразу вставляється в поле «Причина незастосування» (в кінець тексту, в цьому ж алфавітному порядку), а при знятті галочки — прибирається. Текст можна редагувати вручну.</li>
             <li><b>вибух</b> — вкажіть кількість, місце та стан справ.</li>
           </ul>
 
@@ -1371,7 +1376,7 @@
           videoSearch: false,
           outOfRange: false,
           limitedVisibility: false,
-          visuallyNotDetected: false,
+          visuallyNotDetected: false, dataFromProgram: false,
           rozxid: [{ type: '', quantity: null }],
           viktorAmmo1: '',
           viktorAmmo2: '',
@@ -1725,6 +1730,10 @@
         showViktorAmmo() {
           return this.isViktor && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
+        // ТИМЧАСОВО: для зброї 5.45 доступні лише ці два набої
+        ak74AmmoTypes() {
+          return ['Набій 5,45х39 мм ПС', 'Набій 5,45х39 мм ТЗ'];
+        },
         showAk74() {
           return this.isRifle545 && (this.formData.result === 'не знищено' || this.formData.result === 'ЗНИЩЕНО');
         },
@@ -1801,6 +1810,19 @@
       },
 
       watch: {
+        // При виборі "зі стрілецької зброї 5.45" одразу підставляємо два види набоїв (ПС і ТЗ).
+        // Якщо користувач уже щось вводив у "Додатковий розхід БК" — нічого не чіпаємо.
+        isRifle545(isOn) {
+          if (!isOn) return;
+          const rows = this.formData.ak74ExtraRozxid || [];
+          const untouched = rows.every(r => !r.type && !Number(r.quantity));
+          if (untouched) {
+            this.formData.ak74ExtraRozxid = [
+              { type: 'Набій 5,45х39 мм ПС', quantity: null },
+              { type: 'Набій 5,45х39 мм ТЗ', quantity: null }
+            ];
+          }
+        },
         // Зберігаємо лише постійні поля при будь-якій зміні
         'formData.pidrozdil'(v)       { this._saveStatic(); },
         'formData.pozivniyPrefix'(v)  { this._saveStatic(); },
@@ -2058,7 +2080,7 @@
             videoSearch: false,
             outOfRange: false,
             limitedVisibility: false,
-            visuallyNotDetected: false,
+            visuallyNotDetected: false, dataFromProgram: false,
             rozxid: keepRozxidTypes.length
               ? keepRozxidTypes.map(t => ({ type: t, quantity: null }))
               : [{ type: '', quantity: null }],
@@ -2272,8 +2294,9 @@
 
           // AK74 розрахунок БК
           if (this.showAk74) {
+            // ТИМЧАСОВО ВИМКНЕНО розрахунок стрічки АК74 1ТЗ-2ПС (щоб повернути — приберіть "false &&")
             const amt = Number(this.formData.ak74Ammo);
-            if (amt > 0) {
+            if (false && amt > 0) {
               const tz = Math.round(amt / 3);
               const ps = amt - tz;
               text += `\nНабій 5,45х39 мм ТЗ - ${tz}\nНабій 5,45х39 мм ПС - ${ps}`;
@@ -2491,6 +2514,7 @@
             { on: this.formData.limitedVisibility,   text: 'Видимість обмежена.' },
             { on: this.formData.videoSearch,         text: 'Відео пошуку присутнє.' },
             { on: this.formData.visuallyNotDetected, text: 'Візуально не виявлено.' },
+            { on: this.formData.dataFromProgram,     text: 'Дані взяті з програми.' },
             { on: this.formData.outOfRange,          text: 'Поза зоною ураження.' }
           ];
           let base = this.formData.notUsedReason || '';
